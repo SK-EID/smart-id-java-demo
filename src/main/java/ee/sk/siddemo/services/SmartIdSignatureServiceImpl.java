@@ -39,7 +39,6 @@ import org.digidoc4j.SignatureBuilder;
 import org.digidoc4j.SignatureProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -91,7 +90,7 @@ public class SmartIdSignatureServiceImpl implements SmartIdSignatureService {
     @Override
     public SigningSessionInfo sendSignatureRequest(UserRequest userRequest) {
 
-        SemanticsIdentifier semanticsIdentifier = new SemanticsIdentifier(
+        var semanticsIdentifier = new SemanticsIdentifier(
                 // 3 character identity type
                 // (PAS-passport, IDC-national identity card or PNO - (national) personal number)
                 SemanticsIdentifier.IdentityType.PNO,
@@ -100,7 +99,7 @@ public class SmartIdSignatureServiceImpl implements SmartIdSignatureService {
 
         DataFile uploadedFile = getUploadedDataFile(userRequest.getFile());
 
-        Configuration configuration = new Configuration(Configuration.Mode.TEST);
+        var configuration = new Configuration(Configuration.Mode.TEST);
 
         Container container = ContainerBuilder.aContainer()
                 .withConfiguration(configuration)
@@ -116,10 +115,10 @@ public class SmartIdSignatureServiceImpl implements SmartIdSignatureService {
                 .buildDataToSign();
 
 
-        SignableData signableData = new SignableData(dataToSignExternally.getDataToSign());
+        var signableData = new SignableData(dataToSignExternally.getDataToSign());
         signableData.setHashType(HashType.SHA256);
 
-        SignableHash hashToSign = new SignableHash();
+        var hashToSign = new SignableHash();
         hashToSign.setHash(signableData.calculateHash());
         hashToSign.setHashType(signableData.getHashType());
 

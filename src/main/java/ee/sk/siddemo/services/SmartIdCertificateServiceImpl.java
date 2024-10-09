@@ -54,7 +54,7 @@ public class SmartIdCertificateServiceImpl implements SmartIdCertificateService 
 
         try {
 
-            SemanticsIdentifier semanticsIdentifier = new SemanticsIdentifier(
+            var semanticsIdentifier = new SemanticsIdentifier(
                     // 3 character identity type
                     // (PAS-passport, IDC-national identity card or PNO - (national) personal number)
                     SemanticsIdentifier.IdentityType.PNO,

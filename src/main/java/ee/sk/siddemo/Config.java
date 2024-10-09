@@ -71,7 +71,7 @@ public class Config {
         trustStore.load(is, sidTrustedServerSslCertsPassword.toCharArray());
 
         // Client setup. Note that these values are demo environment specific.
-        SmartIdClient client = new SmartIdClient();
+        var client = new SmartIdClient();
         client.setRelyingPartyUUID(sidRelyingPartyUuid);
         client.setRelyingPartyName(sidRelyingPartyName);
         client.setHostUrl(sidApplicationProviderHost);

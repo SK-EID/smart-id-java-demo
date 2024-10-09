@@ -22,8 +22,6 @@ package ee.sk.siddemo.controller;
  * #L%
  */
 
-import javax.validation.Valid;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,10 +44,11 @@ import ee.sk.siddemo.model.UserSidSession;
 import ee.sk.siddemo.services.SmartIdAuthenticationService;
 import ee.sk.siddemo.services.SmartIdSignatureService;
 import ee.sk.smartid.AuthenticationIdentity;
+import jakarta.validation.Valid;
 
 @RestController
 public class SmartIdController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(SmartIdController.class);
 
     private final SmartIdSignatureService signatureService;
@@ -130,7 +129,7 @@ public class SmartIdController {
 
     @ExceptionHandler(FileUploadException.class)
     public ModelAndView handleFileUploadException(FileUploadException exception) {
-        ModelMap model = new ModelMap();
+        var model = new ModelMap();
 
         model.addAttribute("errorMessage", "File upload error");
 
@@ -139,7 +138,7 @@ public class SmartIdController {
 
     @ExceptionHandler(SidOperationException.class)
     public ModelAndView handleSidOperationException(SidOperationException exception) {
-        ModelMap model = new ModelMap();
+        var model = new ModelMap();
 
         model.addAttribute("errorMessage", exception.getMessage());
 
@@ -150,7 +149,7 @@ public class SmartIdController {
     public ModelAndView handleSmartIdException(Exception exception) {
         logger.warn("Generic error caught", exception);
 
-        ModelMap model = new ModelMap();
+        var model = new ModelMap();
 
         model.addAttribute("errorMessage", exception.getMessage());
 
