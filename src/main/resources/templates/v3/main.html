@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="et" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Smart-ID</title>
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+    <link href="../../static/css/style.css.css" rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<div th:insert="~{fragments/header :: header}"></div>
+
+<div class="container-fluid d-flex align-items-center justify-content-center content-area">
+    <div class="container view-content">
+        <div class="row border rounded shadow p-3 bg-light">
+            <!-- Sidebar -->
+            <div class="col-md-4 bg-light border-right p-3" id="sidebar">
+                <h5 class="text-uppercase fw-bold mb-2">Dynamic link</h5>
+                <div class="ms-3">
+                    <a href="#" class="btn btn-outline-dark w-100 mb-1" id="anonymous-authentication">Anonymous authentication</a>
+                    <a href="#" class="btn btn-outline-dark w-100 mb-1" id="person-code-authentication">Authentication with person code</a>
+                    <a href="#" class="btn btn-outline-dark w-100 mb-1" id="document-number-authentication">Authentication with document number</a>
+                </div>
+
+                <h5 class="text-uppercase fw-bold mt-4 mb-2"> Notification </h5>
+                <div class="ms-3">
+                    <a href="#" class="btn btn-outline-dark w-100 mb-1">Authentication with person code</a>
+                    <a href="#" class="btn btn-outline-dark w-100 mb-1">Authentication with document number</a>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="col-md-8 p-3">
+                <div class="container h-100 d-flex align-items-center justify-content-center content-area w-100">
+                    <div class="container" id="anonymous-authentication-area">
+                        <div class="text-center">
+                            <h1>Smart-ID</h1>
+                            <a th:href="@{/v3/start-authentication}" class="btn btn-primary">Authenticate</a>
+                        </div>
+                    </div>
+
+                    <div class="container d-none" id="person-code-authentication-area">
+                        <form action="v3/start-authentication-with-person-code" th:object="${userRequest}" method="POST" class="form-action">
+                            <div class="text-center">
+                                <h1>Smart-ID</h1>
+                            </div>
+                            <div class="form-group">
+                                <label for="country"> Select country </label>
+                                <select th:field="*{country}" id="country" class="form-control" name="country">
+                                    <option th:value="'EE'" value="EE">Estonia</option>
+                                    <option th:value="'LV'" value="LV">Latvia</option>
+                                    <option th:value="'LT'" th:text="Lithuania"></option>
+                                    <option th:value="'BE'" th:text="Belgium"></option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('country')}" th:errors="*{country}" style="color:red">
+                                    country Error
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="person-code">Person code</label>
+                                <input th:field="*{nationalIdentityNumber}" type="text" id="person-code" class="form-control"
+                                       placeholder="Enter person code" name="personCode">
+                                <div th:if="${#fields.hasErrors('nationalIdentityNumber')}" th:errors="*{nationalIdentityNumber}" style="color:red">
+                                    nationalIdentityNumber Error </div>
+                            </div>
+                            <div class="text-right">
+                                <button type="submit" class="btn btn-primary">Authenticate</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="container d-none" id="document-number-authentication-area">
+                        <form action="v3/start-authentication-with-document-number" th:object="${userDocumentNumberRequest}" method="POST" class="form-action" >
+                            <div class="text-center">
+                                <h1>Smart-ID</h1>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="document-number"> Document number</label>
+                                <input  th:field="*{documentNumber}" type="text" id="document-number" class="form-control" placeholder="Enter document number">
+                            </div>
+
+                            <div class="text-right">
+                                <button type="submit" class="btn btn-primary">Authenticate</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Anonymous authentication
+    const anonymousAuthenticationButton = document.getElementById("anonymous-authentication");
+    anonymousAuthenticationButton.addEventListener("click", showAnonymousAuthentication);
+
+    function showAnonymousAuthentication() {
+        document.getElementById("anonymous-authentication-area").classList.remove('d-none');
+        document.getElementById("person-code-authentication-area").classList.add('d-none');
+        document.getElementById("document-number-authentication-area").classList.add('d-none');
+    }
+
+    // Person code authentication
+    const personCodeAuthenticationButton = document.getElementById("person-code-authentication");
+    personCodeAuthenticationButton.addEventListener("click", showPersonCodeAuthentication);
+
+    function showPersonCodeAuthentication() {
+        document.getElementById("anonymous-authentication-area").classList.add('d-none');
+        document.getElementById("person-code-authentication-area").classList.remove('d-none');
+        document.getElementById("document-number-authentication-area").classList.add('d-none');
+    }
+
+    // Document number authentication
+    const documentNumberAuthenticationButton = document.getElementById("document-number-authentication");
+    documentNumberAuthenticationButton.addEventListener("click", showDocumentNumberAuthentication);
+
+    function showDocumentNumberAuthentication() {
+        document.getElementById("anonymous-authentication-area").classList.add('d-none');
+        document.getElementById("person-code-authentication-area").classList.add('d-none');
+        document.getElementById("document-number-authentication-area").classList.remove('d-none');
+    }
+</script>
+</body>
+</html>

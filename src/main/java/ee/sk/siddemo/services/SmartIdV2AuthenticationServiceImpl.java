@@ -34,11 +34,7 @@ import org.springframework.stereotype.Service;
 import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.siddemo.model.AuthenticationSessionInfo;
 import ee.sk.siddemo.model.UserRequest;
-import ee.sk.smartid.AuthenticationHash;
-import ee.sk.smartid.AuthenticationIdentity;
-import ee.sk.smartid.AuthenticationResponseValidator;
-import ee.sk.smartid.SmartIdAuthenticationResponse;
-import ee.sk.smartid.SmartIdClient;
+
 import ee.sk.smartid.exception.UnprocessableSmartIdResponseException;
 import ee.sk.smartid.exception.permanent.ServerMaintenanceException;
 import ee.sk.smartid.exception.useraccount.CertificateLevelMismatchException;
@@ -47,23 +43,28 @@ import ee.sk.smartid.exception.useraccount.UserAccountNotFoundException;
 import ee.sk.smartid.exception.useraction.SessionTimeoutException;
 import ee.sk.smartid.exception.useraction.UserRefusedException;
 import ee.sk.smartid.exception.useraction.UserSelectedWrongVerificationCodeException;
-import ee.sk.smartid.rest.dao.Interaction;
-import ee.sk.smartid.rest.dao.SemanticsIdentifier;
+import ee.sk.smartid.v2.AuthenticationHash;
+import ee.sk.smartid.v2.AuthenticationIdentity;
+import ee.sk.smartid.v2.AuthenticationResponseValidator;
+import ee.sk.smartid.v2.SmartIdAuthenticationResponse;
+import ee.sk.smartid.v2.SmartIdClient;
+import ee.sk.smartid.v2.rest.dao.Interaction;
+import ee.sk.smartid.v2.rest.dao.SemanticsIdentifier;
 
 @Service
-public class SmartIdAuthenticationServiceImpl implements SmartIdAuthenticationService {
+public class SmartIdV2AuthenticationServiceImpl implements SmartIdV2AuthenticationService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SmartIdAuthenticationServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(SmartIdV2AuthenticationServiceImpl.class);
 
-    @Value("${sid.auth.displayText}")
+    @Value("${sid.v2.auth.displayText}")
     private String sidAuthDisplayText;
 
-    private final SmartIdClient client;
+    private final SmartIdClient smartIdClientV2;
     private final AuthenticationResponseValidator sidAuthenticationResponseValidator;
 
-    public SmartIdAuthenticationServiceImpl(SmartIdClient client,
-                                            AuthenticationResponseValidator sidAuthenticationResponseValidator) {
-        this.client = client;
+    public SmartIdV2AuthenticationServiceImpl(SmartIdClient smartIdClientV2,
+                                              AuthenticationResponseValidator sidAuthenticationResponseValidator) {
+        this.smartIdClientV2 = smartIdClientV2;
         this.sidAuthenticationResponseValidator = sidAuthenticationResponseValidator;
     }
 
@@ -100,7 +101,7 @@ public class SmartIdAuthenticationServiceImpl implements SmartIdAuthenticationSe
         AuthenticationIdentity authIdentity = null;
 
         try {
-            SmartIdAuthenticationResponse response = client
+            SmartIdAuthenticationResponse response = smartIdClientV2
                     .createAuthentication()
                     .withSemanticsIdentifier(authenticationSessionInfo.getSemanticsIdentifier())
                     .withAuthenticationHash(authenticationHash)

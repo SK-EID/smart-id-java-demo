@@ -23,7 +23,7 @@ package ee.sk.siddemo.services;
  */
 
 import ee.sk.siddemo.model.UserRequest;
-import ee.sk.smartid.SmartIdCertificate;
+import ee.sk.smartid.v2.SmartIdCertificate;
 
 public interface SmartIdCertificateService {
 

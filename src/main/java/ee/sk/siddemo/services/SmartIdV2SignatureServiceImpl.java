@@ -50,43 +50,43 @@ import ee.sk.siddemo.model.SigningResult;
 import ee.sk.siddemo.model.SigningSessionInfo;
 import ee.sk.siddemo.model.UserRequest;
 import ee.sk.smartid.HashType;
-import ee.sk.smartid.SignableData;
-import ee.sk.smartid.SignableHash;
-import ee.sk.smartid.SmartIdCertificate;
-import ee.sk.smartid.SmartIdClient;
-import ee.sk.smartid.SmartIdSignature;
+import ee.sk.smartid.v2.SignableData;
+import ee.sk.smartid.v2.SignableHash;
+import ee.sk.smartid.v2.SmartIdCertificate;
+import ee.sk.smartid.v2.SmartIdClient;
+import ee.sk.smartid.v2.SmartIdSignature;
 import ee.sk.smartid.exception.permanent.ServerMaintenanceException;
 import ee.sk.smartid.exception.useraccount.DocumentUnusableException;
 import ee.sk.smartid.exception.useraccount.UserAccountNotFoundException;
 import ee.sk.smartid.exception.useraction.SessionTimeoutException;
 import ee.sk.smartid.exception.useraction.UserRefusedException;
 import ee.sk.smartid.exception.useraction.UserSelectedWrongVerificationCodeException;
-import ee.sk.smartid.rest.dao.Interaction;
-import ee.sk.smartid.rest.dao.SemanticsIdentifier;
+import ee.sk.smartid.v2.rest.dao.Interaction;
+import ee.sk.smartid.v2.rest.dao.SemanticsIdentifier;
 
 @Service
-public class SmartIdSignatureServiceImpl implements SmartIdSignatureService {
+public class SmartIdV2SignatureServiceImpl implements SmartIdV2SignatureService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SmartIdSignatureServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(SmartIdV2SignatureServiceImpl.class);
 
-    @Value("${sid.sign.displayText}")
+    @Value("${sid.v2.sign.displayText}")
     private String sidSignDisplayText;
 
-    @Value("${sid.client.relyingPartyUuid}")
+    @Value("${sid.v2.client.relyingPartyUuid}")
     private String sidRelyingPartyUuid;
 
-    @Value("${sid.client.relyingPartyName}")
+    @Value("${sid.v2.client.relyingPartyName}")
     private String sidRelyingPartyName;
 
     @Value("${app.signed-files-directory}")
     private String signedFilesDirectory;
 
     private final SmartIdCertificateService certificateService;
-    private final SmartIdClient client;
+    private final SmartIdClient smartIdClientV2;
 
-    public SmartIdSignatureServiceImpl(SmartIdCertificateService certificateService, SmartIdClient client) {
+    public SmartIdV2SignatureServiceImpl(SmartIdCertificateService certificateService, SmartIdClient smartIdClientV2) {
         this.certificateService = certificateService;
-        this.client = client;
+        this.smartIdClientV2 = smartIdClientV2;
     }
 
     @Override
@@ -149,7 +149,7 @@ public class SmartIdSignatureServiceImpl implements SmartIdSignatureService {
 
         try {
 
-            SmartIdSignature smartIdSignature = client
+            SmartIdSignature smartIdSignature = smartIdClientV2
                     .createSignature()
                     .withDocumentNumber(signingSessionInfo.getDocumentNumber())
                     .withSignableHash(signingSessionInfo.getHashToSign())
