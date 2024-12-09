@@ -1,0 +1,20 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    display: -ms-flexbox;
+    -ms-flex-align: center;
+    align-items: center;
+    padding-bottom: 40px;
+    background-color: #f5f5f5;
+}
+
+.content-area {
+    height: 90vh;
+    overflow: auto;
+}
+
+.view-content {
+    max-width: 800px;
+}
