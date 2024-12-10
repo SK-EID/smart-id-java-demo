@@ -1,4 +1,4 @@
-package ee.sk.siddemo;
+package ee.sk.siddemo.config;
 
 /*-
  * #%L
@@ -37,36 +37,36 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.web.context.WebApplicationContext;
 
 import ee.sk.siddemo.model.UserSidSession;
-import ee.sk.smartid.AuthenticationResponseValidator;
-import ee.sk.smartid.SmartIdClient;
+import ee.sk.smartid.v2.AuthenticationResponseValidator;
+import ee.sk.smartid.v2.SmartIdClient;
 
 @Configuration
-public class Config {
+public class SmartIdV2Config {
 
-    @Value("${sid.client.relyingPartyUuid}")
+    @Value("${sid.v2.client.relyingPartyUuid}")
     private String sidRelyingPartyUuid;
 
-    @Value("${sid.client.relyingPartyName}")
+    @Value("${sid.v2.client.relyingPartyName}")
     private String sidRelyingPartyName;
 
-    @Value("${sid.client.applicationProviderHost}")
+    @Value("${sid.v2.client.applicationProviderHost}")
     private String sidApplicationProviderHost;
 
-    @Value("${sid.truststore.trusted-server-ssl-certs.filename}")
+    @Value("${sid.v2.truststore.trusted-server-ssl-certs.filename}")
     private String sidTrustedServerSslCertsFilename;
 
-    @Value("${sid.truststore.trusted-server-ssl-certs.password}")
+    @Value("${sid.v2.truststore.trusted-server-ssl-certs.password}")
     private String sidTrustedServerSslCertsPassword;
 
-    @Value("${sid.truststore.trusted-root-certs.filename}")
+    @Value("${sid.v2.truststore.trusted-root-certs.filename}")
     private String sidTrustedRootCertsFilename;
 
-    @Value("${sid.truststore.trusted-root-certs.password}")
+    @Value("${sid.v2.truststore.trusted-root-certs.password}")
     private String sidTrustedRootCertsPassword;
 
     @Bean
-    public SmartIdClient smartIdClient() throws Exception {
-        InputStream is = Config.class.getResourceAsStream(sidTrustedServerSslCertsFilename);
+    public SmartIdClient smartIdClientV2() throws Exception {
+        InputStream is = SmartIdV2Config.class.getResourceAsStream(sidTrustedServerSslCertsFilename);
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
         trustStore.load(is, sidTrustedServerSslCertsPassword.toCharArray());
 
@@ -92,7 +92,7 @@ public class Config {
 
         List<X509Certificate> certificates = new ArrayList<>();
 
-        InputStream is = Config.class.getResourceAsStream(sidTrustedRootCertsFilename);
+        InputStream is = SmartIdV2Config.class.getResourceAsStream(sidTrustedRootCertsFilename);
 
         KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
         keystore.load(is, sidTrustedRootCertsPassword.toCharArray());
@@ -106,5 +106,4 @@ public class Config {
 
         return new AuthenticationResponseValidator(certificates.toArray(new X509Certificate[0]));
     }
-
 }

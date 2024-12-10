@@ -25,7 +25,7 @@ package ee.sk.siddemo.model;
 import org.digidoc4j.Container;
 import org.digidoc4j.DataToSign;
 
-import ee.sk.smartid.SignableHash;
+import ee.sk.smartid.v2.SignableHash;
 
 public class SigningSessionInfo {
 

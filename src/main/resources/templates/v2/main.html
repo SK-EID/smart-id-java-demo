@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="et" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Smart-ID</title>
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+
+    <style>
+        .h1-padding {
+            padding-top: 100px;
+            padding-bottom: 30px;
+        }
+
+        .custom-switch {
+            width: 100%;
+            max-width: 330px;
+            margin: auto;
+            position: relative;
+            box-sizing: border-box;
+            height: auto;
+            padding: 30px 15px 0 15px;
+            font-size: 16px;
+        }
+
+        .forms {
+            padding-bottom: 100px;
+        }
+
+        .form-action {
+            width: 100%;
+            max-width: 330px;
+            padding: 100px 15px 15px 15px;
+            margin: auto;
+        }
+
+        .form-action .form-control {
+            position: relative;
+            box-sizing: border-box;
+            height: auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .form-action .form-control:focus {
+            z-index: 2;
+        }
+
+        #inputPhone {
+            margin-bottom: 10px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        #inputIdentityNumber {
+            margin-bottom: 10px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        #inputSignPhone {
+            margin-bottom: 10px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        #inputSignIdentityNumber {
+            margin-bottom: 10px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        #document {
+            margin-bottom: 10px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        #signatureForm {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div th:insert="~{fragments/header :: header}"></div>
+
+<div class="custom-switch">
+    <h1 class="h1-padding text-center">Smart-ID</h1>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="authentication">Authenticate</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="signature">Sign a document</a>
+        </li>
+    </ul>
+</div>
+
+<div class="forms">
+    <form method="POST" th:action="@{/v2/authenticationRequest}" th:object="${userRequest}" class="form-action" id="authenticationForm">
+        <div class="form-group">
+            <label for="country">Country</label>
+            <select th:field="*{country}" id="country">
+                <option th:value="'EE'" th:text="Estonia"></option>
+                <option th:value="'LV'" th:text="Latvia"></option>
+                <option th:value="'LT'" th:text="Lithuania"></option>
+                <option th:value="'BE'" th:text="Belgium"></option>
+            </select>
+            <div th:if="${#fields.hasErrors('country')}" th:errors="*{country}" style="color:red">
+                country Error </div>
+        </div>
+
+        <div class="form-group">
+            <label for="inputIdentityNumber">National identity number</label>
+            <input type="text" th:field="*{nationalIdentityNumber}" class="form-control" id="inputIdentityNumber">
+            <div th:if="${#fields.hasErrors('nationalIdentityNumber')}" th:errors="*{nationalIdentityNumber}" style="color:red">
+                nationalIdentityNumber Error </div>
+        </div>
+        <button type="submit" class="btn btn-primary float-right">Authenticate</button>
+    </form>
+
+    <form method="POST" th:action="@{/v2/signatureRequest}" th:object="${userRequest}" enctype="multipart/form-data" class="form-action" id="signatureForm">
+
+        <div class="form-group">
+            <label for="country">Country</label>
+            <select th:field="*{country}" id="country">
+                <option th:value="'EE'" th:text="Estonia"></option>
+                <option th:value="'LV'" th:text="Latvia"></option>
+                <option th:value="'LT'" th:text="Lithuania"></option>
+            </select>
+            <div th:if="${#fields.hasErrors('country')}" th:errors="*{country}" style="color:red">
+                country Error </div>
+        </div>
+
+        <div class="form-group">
+            <label for="inputSignIdentityNumber">National identity number</label>
+            <input type="text" th:field="*{nationalIdentityNumber}" class="form-control" id="inputSignIdentityNumber">
+            <div th:if="${#fields.hasErrors('nationalIdentityNumber')}" th:errors="*{nationalIdentityNumber}" style="color:red">
+                nationalIdentityNumber Error </div>
+        </div>
+        <div class="form-group">
+            <label for="document">Document to sign (max 10 MB)</label>
+            <input type="file" th:field="*{file}" class="form-control" id="document">
+
+            <div th:if="${#fields.hasErrors('file')}" th:errors="*{file}" style="color:red">
+                file Error </div>
+
+        </div>
+        <button type="submit" value="submit" class="btn btn-primary float-right">Sign</button>
+    </form>
+</div>
+<script th:src="@{/js/bootstrap.js}"></script>
+<script type="text/javascript">
+    var authenticationTab = document.getElementById('authentication');
+    var signatureTab = document.getElementById('signature');
+    authenticationTab.addEventListener('click', showAuthentication, false);
+    signatureTab.addEventListener('click', showSigning, false);
+
+    function showAuthentication() {
+        document.getElementById('authenticationForm').style.display = 'block';
+        document.getElementById('signatureForm').style.display = 'none';
+        document.getElementById('authentication').classList.add("active");
+        document.getElementById('signature').classList.remove("active");
+    }
+
+    function showSigning() {
+        document.getElementById('authenticationForm').style.display = 'none';
+        document.getElementById('signatureForm').style.display = 'block';
+        document.getElementById('authentication').classList.remove("active");
+        document.getElementById('signature').classList.add("active");
+    }
+
+    if (window.location.href.indexOf('sign') > -1) {
+        showSigning();
+    }
+
+</script>
+</body>
+</html>
