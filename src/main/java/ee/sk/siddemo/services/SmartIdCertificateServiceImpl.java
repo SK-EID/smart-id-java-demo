@@ -28,8 +28,6 @@ import org.springframework.stereotype.Service;
 
 import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.siddemo.model.UserRequest;
-import ee.sk.smartid.SmartIdCertificate;
-import ee.sk.smartid.SmartIdClient;
 import ee.sk.smartid.exception.permanent.ServerMaintenanceException;
 import ee.sk.smartid.exception.permanent.SmartIdClientException;
 import ee.sk.smartid.exception.useraccount.DocumentUnusableException;
@@ -37,16 +35,18 @@ import ee.sk.smartid.exception.useraccount.UserAccountNotFoundException;
 import ee.sk.smartid.exception.useraction.SessionTimeoutException;
 import ee.sk.smartid.exception.useraction.UserRefusedException;
 import ee.sk.smartid.rest.dao.SemanticsIdentifier;
+import ee.sk.smartid.v2.SmartIdCertificate;
+import ee.sk.smartid.v2.SmartIdClient;
 
 @Service
 public class SmartIdCertificateServiceImpl implements SmartIdCertificateService {
 
     private static final Logger logger = LoggerFactory.getLogger(SmartIdCertificateServiceImpl.class);
 
-    private final SmartIdClient client;
+    private final SmartIdClient smartIdClientV2;
 
-    public SmartIdCertificateServiceImpl(SmartIdClient client) {
-        this.client = client;
+    public SmartIdCertificateServiceImpl(SmartIdClient smartIdClientV2) {
+        this.smartIdClientV2 = smartIdClientV2;
     }
 
     @Override
@@ -61,8 +61,7 @@ public class SmartIdCertificateServiceImpl implements SmartIdCertificateService 
                     userRequest.getCountry(), // 2 character ISO 3166-1 alpha-2 country code
                     userRequest.getNationalIdentityNumber());
 
-
-            SmartIdCertificate responseWithSigningCertificate = client
+            SmartIdCertificate responseWithSigningCertificate = smartIdClientV2
                     .getCertificate()
                     .withSemanticsIdentifier(semanticsIdentifier)
                     .withCertificateLevel("QUALIFIED")

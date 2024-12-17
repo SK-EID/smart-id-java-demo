@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Smart-ID</title>
     <!-- Bootstrap core CSS -->
-    <link href="../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+    <link href="../../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
 
     <style>
         html,
@@ -35,30 +35,22 @@
 </head>
 
 <body>
-<header>
-    <div class="navbar navbar-dark bg-dark shadow-sm">
-        <div class="container d-flex justify-content-between">
-            <a href="/" class="navbar-brand d-flex align-items-center">
-                <strong>Smart-ID Demo</strong>
-            </a>
-        </div>
-    </div>
-</header>
+<div th:insert="~{fragments/header :: header}"></div>
 
 <div class="alert-box">
     <div class="alert alert-secondary" role="alert">
-        Control code is: <h4 class="alert-heading text-center" th:text="${signingSessionInfo.verificationCode}"></h4>
+        <h4 class="alert-heading text-center" th:text="${verificationCode}"></h4>
 
-        <p>To sign the uploaded document, enter the Smart-ID PIN2 into your phone after you receive a SMS with the same control code you can see here.</p>
+        <p>Enter the Smart-ID PIN1 into your phone after you receive a SMS with the same control code you can see here.</p>
 
     </div>
-    <form method="POST" th:action="@{/sign}" name="signatureConfirm"></form>
+    <form method="POST" th:action="@{/v2/authenticate}" name="authenticationConfirm"></form>
 </div>
 
 <script th:src="@{/js/bootstrap.js}"></script>
 <script type="text/javascript">
     window.onload = function() {
-        document.signatureConfirm.submit();
+        document.authenticationConfirm.submit();
     }
 </script>
 </body>
