@@ -4,25 +4,43 @@ spring.servlet.multipart:
 server.port: 8081
 
 sid:
-  client:
-    relyingPartyUuid: 00000000-0000-0000-0000-000000000000
-    relyingPartyName: DEMO
-    applicationProviderHost: https://sid.demo.sk.ee/smart-id-rp/v2/
-  auth:
-    displayText: Log in with Smart-ID demo?
-    displayTextFormat: GSM7
-    displayTextLanguage: ENG
-  sign:
-    displayText: Подписать?
-    displayTextFormat: UCS2
-    displayTextLanguage: RUS
-  truststore:
-    trusted-server-ssl-certs:
-      filename: /sid.trusted_server_certs.p12
-      password: changeit
-    trusted-root-certs:
-      filename: /sid.trusted_root_certs.p12
-      password: changeit
+  v2:
+    client:
+      relyingPartyUuid: 00000000-0000-0000-0000-000000000000
+      relyingPartyName: DEMO
+      applicationProviderHost: https://sid.demo.sk.ee/smart-id-rp/v2/
+    auth:
+      displayText: Log in with Smart-ID demo?
+      displayTextFormat: GSM7
+      displayTextLanguage: ENG
+    sign:
+      displayText: Подписать?
+      displayTextFormat: UCS2
+      displayTextLanguage: RUS
+    truststore:
+      trusted-server-ssl-certs:
+        filename: /sid.trusted_server_certs.p12
+        password: changeit
+      trusted-root-certs:
+        filename: /sid.trusted_root_certs.p12
+        password: changeit
+  v3:
+    client:
+      relyingPartyUuid: ${SID_RELYING_PARTY_UUID}
+      relyingPartyName: ${SID_RELYING_PARTY_NAME}
+      applicationProviderHost: https://sid.demo.sk.ee/smart-id-rp/v3/
+      polling-timeout-in-seconds: 5
+      dynamic-link-url: https://sid.demo.sk.ee/dynamic-link/
+      open-socket-timeout-in-seconds: 1
+    auth:
+      displayText: Log in with Smart-ID demo?
+    truststore:
+      trusted-server-ssl-certs:
+        filename: /sid.trusted_server_certs.p12
+        password: changeit
+      trusted-root-certs:
+        filename: /sid.trusted_root_certs.p12
+        password: changeit
 
 app:
   signed-files-directory: target/signed-files
