@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="et" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Smart-ID</title>
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+    <link href="../../static/css/style.css" rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<div th:insert="~{fragments/header :: header}"></div>
+
+<main class="container d-flex justify-content-center align-items-center">
+    <div class="row w-100">
+        <div class="col-12 col-md-10 offset-md-1">
+            <ul class="nav nav-tabs sticky-tabs" id="v3-flow-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" id="auth-tab" role="tab" aria-controls="auth-tab-pane" aria-selected="true">
+                        Authentication
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="cert-choice-tab" role="tab" aria-controls="cert-choice-tab-pane" aria-selected="false">
+                        Certificate choice
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="sign-tab" role="tab" aria-controls="sign-tab-pane" aria-selected="false">
+                        Signature
+                    </a>
+                </li>
+            </ul>
+
+            <div class="content-area tab-content" id="v3-flow-tab-panes">
+                <div class="tab-pane active" id="auth-tab-pane" role="tabpanel" aria-labelledby="auth-tab-pane">
+                    <div class="row border rounded p-3 bg-light">
+                        <!-- Sidebar -->
+                        <div class="col-md-4 bg-light border-right p-3" id="sidebar">
+                            <h5 class="text-uppercase fw-bold mb-2">Dynamic link</h5>
+                            <div class="ms-3">
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 auth-btn"
+                                   aria-controls="anonymous-authentication">Anonymous authentication</a>
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 auth-btn"
+                                   aria-controls="dynamic-link-person-code-authentication">Authentication with person code</a>
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 auth-btn"
+                                   aria-controls="dynamic-link-document-number-authentication">Authentication with document number</a>
+                            </div>
+
+                            <h5 class="text-uppercase fw-bold mt-4 mb-2"> Notification </h5>
+                            <div class="ms-3">
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 auth-btn"
+                                   aria-controls="notification-person-code-authentication">Authentication with person code</a>
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 auth-btn"
+                                   aria-controls="notification-document-number-authentication">Authentication with document number</a>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="col-md-8 p-3">
+                            <div class="container h-100 d-flex align-items-center justify-content-center content-area w-100">
+                                <div class="container auth-area" id="anonymous-authentication">
+                                    <div class="text-center">
+                                        <h1>Smart-ID</h1>
+                                        <a th:href="@{/v3/start-authentication}" class="btn btn-primary">Authenticate</a>
+                                    </div>
+                                </div>
+
+                                <div class="container d-none auth-area" id="dynamic-link-person-code-authentication">
+                                    <form action="v3/start-authentication-with-person-code" th:object="${userRequest}" method="POST"
+                                          class="form-action">
+                                        <div class="text-center">
+                                            <h1>Smart-ID</h1>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="country"> Select country </label>
+                                            <select th:field="*{country}" id="country" class="form-control" name="country">
+                                                <option th:value="'EE'" value="EE">Estonia</option>
+                                                <option th:value="'LV'" value="LV">Latvia</option>
+                                                <option th:value="'LT'" th:text="Lithuania"></option>
+                                                <option th:value="'BE'" th:text="Belgium"></option>
+                                            </select>
+                                            <div th:if="${#fields.hasErrors('country')}" th:errors="*{country}" style="color:red">
+                                                country Error
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="person-code">Person code</label>
+                                            <input th:field="*{nationalIdentityNumber}" type="text" id="person-code" class="form-control"
+                                                   placeholder="Enter person code" name="personCode">
+                                            <div th:if="${#fields.hasErrors('nationalIdentityNumber')}" th:errors="*{nationalIdentityNumber}"
+                                                 style="color:red">
+                                                nationalIdentityNumber Error
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <button type="submit" class="btn btn-primary">Authenticate</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="container d-none auth-area" id="dynamic-link-document-number-authentication">
+                                    <form action="v3/start-authentication-with-document-number" th:object="${userDocumentNumberRequest}"
+                                          method="POST"
+                                          class="form-action">
+                                        <div class="text-center">
+                                            <h1>Smart-ID</h1>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="document-number"> Document number</label>
+                                            <input th:field="*{documentNumber}" type="text" id="document-number" class="form-control"
+                                                   placeholder="Enter document number">
+                                        </div>
+
+                                        <div class="text-right">
+                                            <button type="submit" class="btn btn-primary">Authenticate</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="container d-none auth-area" id="notification-person-code-authentication">
+                                    Person code authentication
+                                </div>
+
+                                <div class="container d-none auth-area" id="notification-document-number-authentication">
+                                    Document number authentication
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane" id="cert-choice-tab-pane" role="tabpanel" aria-labelledby="cert-choice-tab-pane">
+                    <div class="row border rounded p-3 bg-light">
+
+                        <!-- Sidebar -->
+                        <div class="col-md-4 bg-light border-right p-3" id="cert-choice-sidebar">
+                            <h5 class="text-uppercase fw-bold mb-2">Dynamic link</h5>
+                            <div class="ms-3">
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 certification-choice-btn"
+                                   aria-controls="anonymous-certificate-choice">Anonymous certificate choice</a>
+                            </div>
+
+                            <h5 class="text-uppercase fw-bold mt-4 mb-2">Notification</h5>
+                            <div class="ms-3">
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 certification-choice-btn"
+                                   aria-controls="person-code-certificate-choice">Certificate choice with person code</a>
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 certification-choice-btn"
+                                   aria-controls="document-number-certificate-choice">Certificate choice with document number</a>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="col-md-8 p-3">
+                            <div class="container h-100 d-flex align-items-center justify-content-center content-area w-100 certification-choice-btn">
+                                <div class="container certification-choice-area" id="anonymous-certificate-choice">
+                                    <div class="text-center">
+                                        <h1>Smart-ID</h1>
+                                        <a th:href="@{/v3/start-certificate-choice}" class="btn btn-primary">Certificate choice</a>
+                                        <p>
+                                            Certificate choice should be used with signing a file. For testing purposes this demo is provided
+                                            for only testing this single flow
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="container d-none certification-choice-area" id="person-code-certificate-choice">
+                                    <!--todo: implement-->
+                                    Person code certificate choice
+                                </div>
+
+                                <div class="container d-none certification-choice-area" id="document-number-certificate-choice">
+                                    <!--todo: implement-->
+                                    Document number certificate choice
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane" id="sign-tab-pane" role="tabpanel" aria-labelledby="sign-tab-pane">
+                    Signing tab
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+<script th:src="@{/js/bootstrap.js}"></script>
+<script>
+    // handle tab switching
+    const tabs = document.querySelectorAll('#v3-flow-tabs .nav-link');
+    const tabPanes = document.querySelectorAll('#v3-flow-tab-panes .tab-pane');
+
+    tabs.forEach(tab => {
+        tab.onclick = function () {
+            tabPanes.forEach(tabPane => {
+                tabPane.classList.remove('active');
+            });
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            const tabId = tab.getAttribute('aria-controls');
+            let tabPane = document.getElementById(tabId);
+            tabPane.classList.add('active');
+            tab.classList.add('active');
+        }
+    });
+
+    // handle auth content switching
+    const authButtons = document.querySelectorAll('.auth-btn');
+    const authAreas = document.querySelectorAll('.auth-area');
+    authButtons.forEach(button => {
+        button.onclick = function () {
+            authButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            authAreas.forEach(area => {
+                area.classList.remove('active');
+                area.classList.add('d-none');
+            });
+            button.classList.add('active');
+
+            const areaId = button.getAttribute('aria-controls');
+            let area = document.getElementById(areaId);
+            area.classList.add('active');
+            area.classList.remove('d-none');
+
+        }
+    });
+
+    // handle certificate choice content switching
+    // handle auth content switching
+    const certButtons = document.querySelectorAll('.certification-choice-btn');
+    const certAreas = document.querySelectorAll('.certification-choice-area');
+    certButtons.forEach(button => {
+        button.onclick = function () {
+            certButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            certAreas.forEach(area => {
+                area.classList.remove('active');
+                area.classList.add('d-none');
+            });
+            button.classList.add('active');
+
+            const areaId = button.getAttribute('aria-controls');
+            console.log(areaId);
+            let area = document.getElementById(areaId);
+            area.classList.add('active');
+            area.classList.remove('d-none');
+        }
+    });
+</script>
+</body>
+</html>

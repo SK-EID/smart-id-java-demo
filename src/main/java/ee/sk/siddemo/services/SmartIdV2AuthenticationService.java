@@ -22,10 +22,13 @@ package ee.sk.siddemo.services;
  * #L%
  */
 
+import ee.sk.siddemo.model.AuthenticationSessionInfo;
 import ee.sk.siddemo.model.UserRequest;
-import ee.sk.smartid.v2.SmartIdCertificate;
+import ee.sk.smartid.AuthenticationIdentity;
 
-public interface SmartIdCertificateService {
+public interface SmartIdV2AuthenticationService {
 
-    SmartIdCertificate getCertificate(UserRequest userRequest);
+    AuthenticationSessionInfo startAuthentication(UserRequest userRequest);
+
+    AuthenticationIdentity authenticate(AuthenticationSessionInfo authenticationSessionInfo);
 }

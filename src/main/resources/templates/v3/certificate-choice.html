@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="et" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Smart-ID</title>
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+    <link href="../../static/css/style.css.css" rel="stylesheet" th:href="@{/css/style.css}"/>
+
+    <style>
+        .responsive-text {
+            font-size: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .responsive-text {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .responsive-text {
+                font-size: 2rem;
+            }
+        }
+
+        .qr-area {
+            width: 610px;
+            height: 610px;
+            background: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+<div th:insert="~{fragments/header :: header}"></div>
+
+<div class="container-fluid d-flex flex-column align-items-center justify-content-center content-area pt-3">
+    <div class="container view-content h-100">
+        <div class="container">
+            <div class="container text-center mt-3">
+                <p class="responsive-text">
+                    Please scan the QR code with the Smart-ID app to proceed
+                </p>
+            </div>
+            <div class="container d-flex align-items-center justify-content-center qr-area">
+                <img src="" class="img-fluid" id="qr-code" alt="QR code">
+            </div>
+        </div>
+
+        <div class="container border-dark pt-3">
+            <div class="container text-center">
+                <p>
+                    Link option is only meant to work on mobile device where Smart-ID app is installed.
+                    If app is not available on your device, then link should direct you to the app store.
+                </p>
+            </div>
+            <div class="container text-center">
+                <a class="btn btn-primary" id="dynamic-link"> To Smart-ID app</a>
+            </div>
+            <div class="container">
+                <h5> Link content</h5>
+                <div class="text-wrap" style="overflow-wrap: break-word">
+                    <p id="link-content"></p>
+                </div>
+            </div>
+        </div>
+        <div class="container text-center">
+            <a th:href="@{/v3/cancel-certificate-choice}" class="btn btn-outline-dark">Cancel</a>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/bootstrap.js}"></script>
+<script type="text/javascript">
+    function loadContent() {
+        fetch('/v3/check-certificate-choice-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.errorMessage !== undefined) {
+                    window.location.href = '/certificate-choice-session-error?errorMessage=' + data.errorMessage;
+                } else if (data.sessionStatus === 'COMPLETED') {
+                    window.location.href = '/v3/certificate-choice-result';
+                } else {
+                    document.getElementById("qr-code").src = data.qrCode;
+                    document.getElementById("dynamic-link").href = data.dynamicLink;
+                    document.getElementById("link-content").innerText = data.dynamicLink;
+                    setTimeout(loadContent, 1000);
+                }
+            })
+            .catch(error => console.log('Error:', error));
+    }
+
+    window.onload = loadContent;
+</script>
+</body>
+
+</html>
