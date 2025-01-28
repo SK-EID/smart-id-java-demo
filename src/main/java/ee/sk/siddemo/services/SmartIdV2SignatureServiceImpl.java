@@ -50,18 +50,18 @@ import ee.sk.siddemo.model.SigningResult;
 import ee.sk.siddemo.model.SigningSessionInfo;
 import ee.sk.siddemo.model.UserRequest;
 import ee.sk.smartid.HashType;
-import ee.sk.smartid.rest.dao.SemanticsIdentifier;
-import ee.sk.smartid.v2.SignableData;
-import ee.sk.smartid.v2.SignableHash;
-import ee.sk.smartid.v2.SmartIdCertificate;
-import ee.sk.smartid.v2.SmartIdClient;
-import ee.sk.smartid.v2.SmartIdSignature;
 import ee.sk.smartid.exception.permanent.ServerMaintenanceException;
 import ee.sk.smartid.exception.useraccount.DocumentUnusableException;
 import ee.sk.smartid.exception.useraccount.UserAccountNotFoundException;
 import ee.sk.smartid.exception.useraction.SessionTimeoutException;
 import ee.sk.smartid.exception.useraction.UserRefusedException;
 import ee.sk.smartid.exception.useraction.UserSelectedWrongVerificationCodeException;
+import ee.sk.smartid.rest.dao.SemanticsIdentifier;
+import ee.sk.smartid.v2.SignableData;
+import ee.sk.smartid.v2.SignableHash;
+import ee.sk.smartid.v2.SmartIdCertificate;
+import ee.sk.smartid.v2.SmartIdClient;
+import ee.sk.smartid.v2.SmartIdSignature;
 import ee.sk.smartid.v2.rest.dao.Interaction;
 
 @Service

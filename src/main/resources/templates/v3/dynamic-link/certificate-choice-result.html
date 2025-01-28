@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="et" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Smart-ID</title>
+    <!-- Bootstrap core CSS -->
+    <link href="../../../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+    <link href="../../../static/css/style.css" rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+
+<body>
+<div th:insert="~{fragments/header :: header}"></div>
+
+<div class="container-fluid d-flex flex-column align-items-center justify-content-center vh-100">
+    <h1> Certificate choice result</h1>
+    <p>
+        <span th:text="${documentNumber}"></span>
+        <br>
+        <span th:text="${distinguishedName}"></span>
+    </p>
+</div>
+
+<script th:src="@{/js/bootstrap.js}"></script>
+</body>
+
+</html>

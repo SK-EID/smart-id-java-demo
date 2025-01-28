@@ -4,18 +4,18 @@ package ee.sk.siddemo.controller;
  * #%L
  * Smart-ID sample Java client
  * %%
- * Copyright (C) 2018 - 2024 SK ID Solutions AS
+ * Copyright (C) 2018 - 2025 SK ID Solutions AS
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -39,43 +39,43 @@ import org.springframework.web.servlet.ModelAndView;
 import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.siddemo.model.DynamicContent;
 import ee.sk.siddemo.services.DynamicContentService;
-import ee.sk.siddemo.services.SmartIdV3CertificateChoiceService;
+import ee.sk.siddemo.services.SmartIdV3DynamicLinkCertificateChoiceService;
 import ee.sk.siddemo.services.SmartIdV3SessionsStatusService;
 import ee.sk.smartid.v3.SessionType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
-public class SmartIdV3CertificateChoiceController {
+public class SmartIdV3DynamicLinkCertificateChoiceController {
 
-    private static final Logger logger = LoggerFactory.getLogger(SmartIdV3CertificateChoiceController.class);
+    private static final Logger logger = LoggerFactory.getLogger(SmartIdV3DynamicLinkCertificateChoiceController.class);
 
-    private final SmartIdV3CertificateChoiceService smartIdV3CertificateChoiceService;
+    private final SmartIdV3DynamicLinkCertificateChoiceService smartIdV3DynamicLinkCertificateChoiceService;
     private final SmartIdV3SessionsStatusService smartIdV3SessionsStatusService;
     private final DynamicContentService dynamicContentService;
 
-    public SmartIdV3CertificateChoiceController(SmartIdV3CertificateChoiceService smartIdV3CertificateChoiceService,
-                                                SmartIdV3SessionsStatusService smartIdV3SessionsStatusService,
-                                                DynamicContentService dynamicContentService) {
-        this.smartIdV3CertificateChoiceService = smartIdV3CertificateChoiceService;
+    public SmartIdV3DynamicLinkCertificateChoiceController(SmartIdV3DynamicLinkCertificateChoiceService smartIdV3DynamicLinkCertificateChoiceService,
+                                                           SmartIdV3SessionsStatusService smartIdV3SessionsStatusService,
+                                                           DynamicContentService dynamicContentService) {
+        this.smartIdV3DynamicLinkCertificateChoiceService = smartIdV3DynamicLinkCertificateChoiceService;
         this.smartIdV3SessionsStatusService = smartIdV3SessionsStatusService;
         this.dynamicContentService = dynamicContentService;
     }
 
-    @GetMapping(value = "/v3/start-certificate-choice")
-    public ModelAndView startCertificateChoice(ModelMap model, HttpServletRequest request) {
+    @GetMapping(value = "/v3/dynamic-link/start-certificate-choice")
+    public ModelAndView startDynamicCertificateChoice(ModelMap model, HttpServletRequest request) {
         HttpSession session = resetSession(request);
-        smartIdV3CertificateChoiceService.startCertificateChoice(session);
+        smartIdV3DynamicLinkCertificateChoiceService.startCertificateChoice(session);
         model.addAttribute("activeTab", "rp-api-v3");
-        return new ModelAndView("v3/certificate-choice", model);
+        return new ModelAndView("v3/dynamic-link/certificate-choice", model);
     }
 
-    @GetMapping(value = "/v3/check-certificate-choice-status")
+    @GetMapping(value = "/v3/dynamic-link/check-certificate-choice-status")
     @ResponseBody
     public ResponseEntity<Map<String, String>> checkCertificateChoiceStatus(HttpSession session) {
         boolean checkCompleted;
         try {
-            checkCompleted = smartIdV3CertificateChoiceService.checkCertificateChoiceStatus(session);
+            checkCompleted = smartIdV3DynamicLinkCertificateChoiceService.checkCertificateChoiceStatus(session);
         } catch (SidOperationException ex) {
             logger.error("Error occurred while checking authentication status", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("errorMessage", ex.getMessage()));
@@ -94,24 +94,25 @@ public class SmartIdV3CertificateChoiceController {
         return ResponseEntity.ok(content);
     }
 
-    @GetMapping(value = "/certificate-choice-session-error")
+    @GetMapping(value = "/v3/dynamic-link/certificate-choice-session-error")
     public ModelAndView handleCertificateChoiceSessionsError(@RequestParam(value = "errorMessage", required = false) String errorMessage,
-                                                          ModelMap model) {
+                                                             ModelMap model) {
         model.addAttribute("errorMessage", errorMessage);
+        model.addAttribute("activeTab", "rp-api-v3");
         return new ModelAndView("sidOperationError", model);
     }
 
-    @GetMapping(value = "/v3/certificate-choice-result")
+    @GetMapping(value = "/v3/dynamic-link/certificate-choice-result")
     public ModelAndView getAuthenticationResult(ModelMap model, HttpSession session) {
         String documentNumber = (String) session.getAttribute("documentNumber");
         String distinguishedName = (String) session.getAttribute("distinguishedName");
         model.addAttribute("documentNumber", documentNumber);
         model.addAttribute("distinguishedName", distinguishedName);
         model.addAttribute("activeTab", "rp-api-v3");
-        return new ModelAndView("v3/certificate-choice-result", model);
+        return new ModelAndView("v3/dynamic-link/certificate-choice-result", model);
     }
 
-    @GetMapping(value = "/v3/cancel-certificate-choice")
+    @GetMapping(value = "/v3/dynamic-link/cancel-certificate-choice")
     public ModelAndView cancelAuthentication(ModelMap model, HttpServletRequest request) {
         resetSession(request);
         model.addAttribute("activeTab", "rp-api-v3");

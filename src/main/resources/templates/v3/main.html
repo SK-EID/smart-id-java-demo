@@ -73,7 +73,9 @@
                                 </div>
 
                                 <div class="container d-none auth-area" id="dynamic-link-person-code-authentication">
-                                    <form method="POST" th:action="@{/v3/start-authentication-with-person-code}" th:object="${userRequest}"
+                                    <form method="POST"
+                                          th:action="@{/v3/start-authentication-with-person-code}"
+                                          th:object="${userRequest}"
                                           class="form-action">
                                         <div class="text-center">
                                             <h1>Smart-ID</h1>
@@ -107,7 +109,8 @@
                                 </div>
 
                                 <div class="container d-none auth-area" id="dynamic-link-document-number-authentication">
-                                    <form method="POST" th:action="@{/v3/start-authentication-with-document-number}"
+                                    <form method="POST"
+                                          th:action="@{/v3/start-authentication-with-document-number}"
                                           th:object="${userDocumentNumberRequest}"
                                           class="form-action">
                                         <div class="text-center">
@@ -115,8 +118,11 @@
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="document-number"> Document number</label>
-                                            <input th:field="*{documentNumber}" type="text" id="document-number" class="form-control"
+                                            <label for="dynamic-link-auth-document-number"> Document number</label>
+                                            <input th:field="*{documentNumber}"
+                                                   type="text"
+                                                   id="dynamic-link-auth-document-number"
+                                                   class="form-control"
                                                    placeholder="Enter document number">
                                         </div>
 
@@ -163,11 +169,11 @@
 
                         <!-- Content -->
                         <div class="col-md-8 p-3">
-                            <div class="container h-100 d-flex align-items-center justify-content-center content-area w-100 certification-choice-btn">
+                            <div class="container h-100 d-flex align-items-center justify-content-center content-area w-100">
                                 <div class="container certification-choice-area" id="anonymous-certificate-choice">
                                     <div class="text-center">
                                         <h1>Smart-ID</h1>
-                                        <a th:href="@{/v3/start-certificate-choice}" class="btn btn-primary">Certificate choice</a>
+                                        <a th:href="@{/v3/dynamic-link/start-certificate-choice}" class="btn btn-primary">Certificate choice</a>
                                         <p class="text-danger"> Anonymous certificate choice uses dummy data to generate dynamic links and QR codes.
                                             At this moment, no sessions are being created.
                                         </p>
@@ -179,13 +185,63 @@
                                 </div>
 
                                 <div class="container d-none certification-choice-area" id="person-code-certificate-choice">
-                                    <!--todo: implement-->
-                                    Person code certificate choice
+                                    <form method="POST"
+                                          th:action="@{/v3/notification-based/start-certificate-choice-with-person-code}"
+                                          th:object="${userRequest}"
+                                          class="form-action">
+                                        <div class="text-center">
+                                            <h1>Smart-ID</h1>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="cert-choice-country"> Select country </label>
+                                            <select th:field="*{country}" id="cert-choice-country" class="form-control" name="country">
+                                                <option th:value="'EE'" value="EE">Estonia</option>
+                                                <option th:value="'LV'" value="LV">Latvia</option>
+                                                <option th:value="'LT'" th:text="Lithuania"></option>
+                                                <option th:value="'BE'" th:text="Belgium"></option>
+                                            </select>
+                                            <div th:if="${#fields.hasErrors('country')}" th:errors="*{country}" style="color:red">
+                                                country Error
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="cert-choice-person-code">Person code</label>
+                                            <input th:field="*{nationalIdentityNumber}" type="text" id="cert-choice-person-code" class="form-control"
+                                                   placeholder="Enter person code" name="personCode">
+                                            <div th:if="${#fields.hasErrors('nationalIdentityNumber')}" th:errors="*{nationalIdentityNumber}"
+                                                 style="color:red">
+                                                nationalIdentityNumber Error
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <button type="submit" class="btn btn-primary">Certificate choice</button>
+                                        </div>
+                                    </form>
                                 </div>
 
                                 <div class="container d-none certification-choice-area" id="document-number-certificate-choice">
-                                    <!--todo: implement-->
-                                    Document number certificate choice
+                                    <form method="POST"
+                                          th:action="@{/v3/notification-based/start-certificate-choice-with-document-number}"
+                                          th:object="${userDocumentNumberRequest}"
+                                          class="form-action">
+                                        <div class="text-center">
+                                            <h1>Smart-ID</h1>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="notification-cert-choice-document-number"> Document number</label>
+                                            <input th:field="*{documentNumber}"
+                                                   type="text"
+                                                   id="notification-cert-choice-document-number"
+                                                   class="form-control"
+                                                   placeholder="Enter document number">
+                                        </div>
+
+                                        <div class="text-right">
+                                            <button type="submit" class="btn btn-primary">Query certificate</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -240,12 +296,10 @@
             let area = document.getElementById(areaId);
             area.classList.add('active');
             area.classList.remove('d-none');
-
         }
     });
 
     // handle certificate choice content switching
-    // handle auth content switching
     const certButtons = document.querySelectorAll('.certification-choice-btn');
     const certAreas = document.querySelectorAll('.certification-choice-area');
     certButtons.forEach(button => {

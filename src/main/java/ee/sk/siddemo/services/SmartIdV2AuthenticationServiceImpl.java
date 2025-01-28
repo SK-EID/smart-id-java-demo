@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
 import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.siddemo.model.AuthenticationSessionInfo;
 import ee.sk.siddemo.model.UserRequest;
-
 import ee.sk.smartid.AuthenticationIdentity;
 import ee.sk.smartid.exception.UnprocessableSmartIdResponseException;
 import ee.sk.smartid.exception.permanent.ServerMaintenanceException;
