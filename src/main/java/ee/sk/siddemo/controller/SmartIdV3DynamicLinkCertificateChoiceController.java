@@ -103,7 +103,7 @@ public class SmartIdV3DynamicLinkCertificateChoiceController {
     }
 
     @GetMapping(value = "/v3/dynamic-link/certificate-choice-result")
-    public ModelAndView getAuthenticationResult(ModelMap model, HttpSession session) {
+    public ModelAndView toCertificateChoiceResult(ModelMap model, HttpSession session) {
         String documentNumber = (String) session.getAttribute("documentNumber");
         String distinguishedName = (String) session.getAttribute("distinguishedName");
         model.addAttribute("documentNumber", documentNumber);
@@ -113,7 +113,7 @@ public class SmartIdV3DynamicLinkCertificateChoiceController {
     }
 
     @GetMapping(value = "/v3/dynamic-link/cancel-certificate-choice")
-    public ModelAndView cancelAuthentication(ModelMap model, HttpServletRequest request) {
+    public ModelAndView cancelCertificateChoice(ModelMap model, HttpServletRequest request) {
         resetSession(request);
         model.addAttribute("activeTab", "rp-api-v3");
         return new ModelAndView("v3/main", model);

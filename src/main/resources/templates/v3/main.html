@@ -34,6 +34,7 @@
             </ul>
 
             <div class="content-area tab-content" id="v3-flow-tab-panes">
+                <!-- Authentication -->
                 <div class="tab-pane active" id="auth-tab-pane" role="tabpanel" aria-labelledby="auth-tab-pane">
                     <div class="row border rounded p-3 bg-light">
                         <!-- Sidebar -->
@@ -144,6 +145,7 @@
                     </div>
                 </div>
 
+                <!-- Cert choice -->
                 <div class="tab-pane" id="cert-choice-tab-pane" role="tabpanel" aria-labelledby="cert-choice-tab-pane">
                     <div class="row border rounded p-3 bg-light">
 
@@ -248,8 +250,114 @@
                     </div>
                 </div>
 
+                <!-- Signing -->
                 <div class="tab-pane" id="sign-tab-pane" role="tabpanel" aria-labelledby="sign-tab-pane">
-                    Signing tab
+                    <div class="row border rounded p-3 bg-light">
+                        <!-- Sidebar -->
+                        <div class="col-md-4 bg-light border-right p-3" id="signing-sidebar">
+                            <h5 class="text-uppercase fw-bold mb-2">Dynamic link</h5>
+                            <div class="ms-3">
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 signing-btn"
+                                   aria-controls="dynamic-link-signing-with-document-number">Sign with document number</a>
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 signing-btn"
+                                   aria-controls="dynamic-link-signing-with-person-code">Sign with person code</a>
+                            </div>
+
+                            <h5 class="text-uppercase fw-bold mt-4 mb-2">Notification</h5>
+                            <div class="ms-3">
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 signing-btn"
+                                   aria-controls="notification-signing-with-person-code">Signing with person code</a>
+                                <a href="#"
+                                   class="btn btn-outline-dark w-100 mb-1 signing-btn"
+                                   aria-controls="notification-signing-with-document-number">Signing with document number</a>
+                            </div>
+                        </div>
+                        <!-- Content -->
+                        <div class="col-md-8 p-3">
+                            <div class="container h-100 d-flex align-items-center justify-content-center content-area w-100">
+                                <div class="container signing-area" id="dynamic-link-signing-with-document-number">
+                                    <form method="POST"
+                                          th:action="@{/v3/dynamic-link/start-signing-with-document-number}"
+                                          th:object="${userDocumentNumberRequest}"
+                                          class="form-action"
+                                          enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <label for="dynamic-link-sign-document-number"> Document number</label>
+                                            <input th:field="*{documentNumber}"
+                                                   type="text"
+                                                   id="dynamic-link-sign-document-number"
+                                                   class="form-control"
+                                                   placeholder="Enter document number">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="dynamic-link-doc-nr-document">Document to sign (max 10 MB)</label>
+                                            <input type="file" th:field="*{file}" id="dynamic-link-doc-nr-document">
+
+                                            <div th:if="${#fields.hasErrors('file')}" th:errors="*{file}" style="color:red">
+                                                file Error
+                                            </div>
+                                        </div>
+
+                                        <div class="text-right">
+                                            <button type="submit" class="btn btn-primary">Sign</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="container d-none signing-area" id="dynamic-link-signing-with-person-code">
+                                    <form method="POST"
+                                          th:action="@{/v3/dynamic-link/start-signing-with-person-code}"
+                                          th:object="${userRequest}"
+                                          class="form-action"
+                                          enctype="multipart/form-data">
+
+                                        <div class="form-group">
+                                            <label for="dynamic-link-signing-country"> Select country </label>
+                                            <select th:field="*{country}" id="dynamic-link-signing-country" class="form-control" name="country">
+                                                <option th:value="'EE'" value="EE">Estonia</option>
+                                                <option th:value="'LV'" value="LV">Latvia</option>
+                                                <option th:value="'LT'" th:text="Lithuania"></option>
+                                                <option th:value="'BE'" th:text="Belgium"></option>
+                                            </select>
+                                            <div th:if="${#fields.hasErrors('country')}" th:errors="*{country}" style="color:red">
+                                                country Error
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="dynamic-link-sign-person-code"> Person code</label>
+                                            <input th:field="*{nationalIdentityNumber}"
+                                                   type="text"
+                                                   id="dynamic-link-sign-person-code"
+                                                   class="form-control"
+                                                   placeholder="Enter person code">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="dynamic-link-person-code-document">Document to sign (max 10 MB)</label>
+                                            <input type="file" th:field="*{file}" id="dynamic-link-person-code-document">
+
+                                            <div th:if="${#fields.hasErrors('file')}" th:errors="*{file}" style="color:red">
+                                                file Error
+                                            </div>
+                                        </div>
+
+                                        <div class="text-right">
+                                            <button type="submit" class="btn btn-primary">Sign</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="container d-none signing-area" id="notification-signing-with-person-code">
+                                    Notification based signing with person code
+                                </div>
+                                <div class="container d-none signing-area" id="notification-signing-with-document-number">
+                                    Notification based signing with document number
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -278,48 +386,35 @@
         }
     });
 
-    // handle auth content switching
-    const authButtons = document.querySelectorAll('.auth-btn');
-    const authAreas = document.querySelectorAll('.auth-area');
-    authButtons.forEach(button => {
-        button.onclick = function () {
-            authButtons.forEach(button => {
-                button.classList.remove('active');
-            });
-            authAreas.forEach(area => {
-                area.classList.remove('active');
-                area.classList.add('d-none');
-            });
-            button.classList.add('active');
+    // handle area switching
+    function connectButtonClickToArea(buttonClass, areaClass) {
+        const buttons = document.querySelectorAll(buttonClass);
+        const areas = document.querySelectorAll(areaClass);
+        buttons.forEach(button => {
+            button.onclick = function () {
+                // hide all buttons and areas
+                buttons.forEach(button => {
+                    button.classList.remove('active');
+                });
+                areas.forEach(area => {
+                    area.classList.remove('active');
+                    area.classList.add('d-none');
+                });
 
-            const areaId = button.getAttribute('aria-controls');
-            let area = document.getElementById(areaId);
-            area.classList.add('active');
-            area.classList.remove('d-none');
-        }
-    });
+                // show the clicked button and related area
+                button.classList.add('active');
 
-    // handle certificate choice content switching
-    const certButtons = document.querySelectorAll('.certification-choice-btn');
-    const certAreas = document.querySelectorAll('.certification-choice-area');
-    certButtons.forEach(button => {
-        button.onclick = function () {
-            certButtons.forEach(button => {
-                button.classList.remove('active');
-            });
-            certAreas.forEach(area => {
-                area.classList.remove('active');
-                area.classList.add('d-none');
-            });
-            button.classList.add('active');
+                const areaId = button.getAttribute('aria-controls');
+                let area = document.getElementById(areaId);
+                area.classList.add('active');
+                area.classList.remove('d-none');
+            }
+        });
+    }
 
-            const areaId = button.getAttribute('aria-controls');
-            console.log(areaId);
-            let area = document.getElementById(areaId);
-            area.classList.add('active');
-            area.classList.remove('d-none');
-        }
-    });
+    connectButtonClickToArea('.auth-btn', '.auth-area');
+    connectButtonClickToArea('.certification-choice-btn', '.certification-choice-area');
+    connectButtonClickToArea('.signing-btn', '.signing-area');
 </script>
 </body>
 </html>

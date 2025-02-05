@@ -40,10 +40,16 @@
 <div class="alert-box">
     <div class="alert alert-secondary" role="alert">
         <h4 class="alert-heading text-center" th:text="${'Error'}"></h4>
+        <div class="text-center">
+            <p th:if="${message != null && message.contains('SizeLimitExceededException')}"
+               th:text="${'Maximum upload size exceeded'}"></p>
 
-        <p class="text-center" th:if="${message != null && message.contains('SizeLimitExceededException')}" th:text="${'Maximum upload size exceeded'}"></p>
-        <p class="text-center" th:if="${message == null || !message.contains('SizeLimitExceededException')}" th:text="${message}"></p>
+            <p th:if="${message == null || !message.contains('SizeLimitExceededException')}"
+               th:text="${message}"></p>
 
+            <p th:if="${errorMessage != null}"
+               th:text="${errorMessage}"></p>
+        </div>
         <p><a href="/">Go to front page</a></p>
     </div>
 </div>

@@ -106,7 +106,7 @@ public class SmartIdV3NotificationBasedCertificateChoiceController {
     }
 
     @GetMapping(value = "/v3/notification-based/certificate-choice-result")
-    public ModelAndView getAuthenticationResult(ModelMap model, HttpSession session) {
+    public ModelAndView toCertificateChoiceResult(ModelMap model, HttpSession session) {
         String distinguishedName = (String) session.getAttribute("distinguishedName");
         if (distinguishedName == null) {
             return new ModelAndView("v3/main", model);
@@ -117,7 +117,7 @@ public class SmartIdV3NotificationBasedCertificateChoiceController {
     }
 
     @GetMapping(value = "/v3/notification-based/cancel-certificate-choice")
-    public ModelAndView cancelAuthentication(ModelMap model, HttpServletRequest request) {
+    public ModelAndView cancelCertificateChoice(ModelMap model, HttpServletRequest request) {
         resetSession(request);
         model.addAttribute("activeTab", "rp-api-v3");
         return new ModelAndView("v3/main", model);

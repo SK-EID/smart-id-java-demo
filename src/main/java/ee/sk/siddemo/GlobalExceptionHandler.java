@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ModelAndView handleSmartIdException(Exception exception) {
-        logger.warn("Generic error caught", exception);
+        logger.warn("Generic error caught {}", exception.getMessage());
 
         var model = new ModelMap();
         model.addAttribute("errorMessage", exception.getMessage());

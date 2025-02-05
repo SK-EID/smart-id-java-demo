@@ -67,7 +67,7 @@
             </div>
         </div>
         <div class="container text-center">
-            <a th:href="@{/v3/dynamic-link/cancel-certificate-choice}" class="btn btn-outline-dark">Cancel</a>
+            <a th:href="@{/v3/dynamic-link/cancel-signing}" class="btn btn-outline-dark">Cancel</a>
         </div>
     </div>
 </div>
@@ -75,13 +75,13 @@
 <script th:src="@{/js/bootstrap.js}"></script>
 <script type="text/javascript">
     function loadContent() {
-        fetch('/v3/dyanmic-link/check-certificate-choice-status')
+        fetch('/v3/dynamic-link/check-signing-status')
             .then(response => response.json())
             .then(data => {
                 if (data.errorMessage !== undefined) {
-                    window.location.href = '/v3/dynamic-link/certificate-choice-session-error?errorMessage=' + data.errorMessage;
+                    window.location.href = '/v3/dynamic-link/sign-session-error?errorMessage=' + data.errorMessage;
                 } else if (data.sessionStatus === 'COMPLETED') {
-                    window.location.href = '/v3/dynamic-link/certificate-choice-result';
+                    window.location.href = '/v3/dynamic-link/signing-result';
                 } else {
                     document.getElementById("qr-code").src = data.qrCode;
                     document.getElementById("dynamic-link").href = data.dynamicLink;

@@ -22,12 +22,15 @@ package ee.sk.siddemo.model;
  * #L%
  */
 
+import org.springframework.web.multipart.MultipartFile;
+
 import jakarta.validation.constraints.NotNull;
 
 public class UserDocumentNumberRequest {
 
     @NotNull
     private String documentNumber;
+    private MultipartFile file;
 
     public String getDocumentNumber() {
         return documentNumber;
@@ -35,5 +38,13 @@ public class UserDocumentNumberRequest {
 
     public void setDocumentNumber(String documentNumber) {
         this.documentNumber = documentNumber;
+    }
+
+    public MultipartFile getFile() {
+        return file;
+    }
+
+    public void setFile(MultipartFile file) {
+        this.file = file;
     }
 }
