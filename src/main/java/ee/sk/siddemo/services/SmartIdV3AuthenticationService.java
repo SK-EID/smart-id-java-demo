@@ -28,6 +28,7 @@ import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.smartid.AuthenticationIdentity;
 import ee.sk.smartid.exception.UnprocessableSmartIdResponseException;
 import ee.sk.smartid.exception.useraccount.CertificateLevelMismatchException;
+import ee.sk.smartid.v3.AuthenticationCertificateLevel;
 import ee.sk.smartid.v3.AuthenticationResponse;
 import ee.sk.smartid.v3.AuthenticationResponseValidator;
 import jakarta.servlet.http.HttpSession;
@@ -45,10 +46,11 @@ public class SmartIdV3AuthenticationService {
         // validate sessions status for dynamic link authentication
         AuthenticationResponse response = (AuthenticationResponse) session.getAttribute("authentication_response");
         String randomChallenge = (String) session.getAttribute("randomChallenge");
+        AuthenticationCertificateLevel requestedCertificateLevel = (AuthenticationCertificateLevel) session.getAttribute("requestedCertificateLevel");
 
         try {
             // validate and map authentication response to authentication identity
-            AuthenticationIdentity authenticationIdentity = authenticationResponseValidatorV3.toAuthenticationIdentity(response, randomChallenge);
+            AuthenticationIdentity authenticationIdentity = authenticationResponseValidatorV3.toAuthenticationIdentity(response, requestedCertificateLevel, randomChallenge);
             // invalidate current session after successful authentication
             session.invalidate();
             return authenticationIdentity;

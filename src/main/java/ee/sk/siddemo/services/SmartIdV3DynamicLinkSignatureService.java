@@ -80,16 +80,16 @@ public class SmartIdV3DynamicLinkSignatureService {
     public void startSigningWithDocumentNumber(HttpSession session, UserDocumentNumberRequest userDocumentNumberRequest) {
         notificationCertificateChoice.startCertificateChoice(session, userDocumentNumberRequest);
         var signableData = toSignableData(userDocumentNumberRequest.getFile(), session);
-
+        var signatureCertificateLevel = CertificateLevel.QUALIFIED;
         DynamicLinkSessionResponse sessionResponse = smartIdClientV3.createDynamicLinkSignature()
-                .withCertificateLevel(CertificateLevel.QUALIFIED)
+                .withCertificateLevel(signatureCertificateLevel)
                 .withSignableData(signableData)
                 .withAllowedInteractionsOrder(List.of(DynamicLinkInteraction.displayTextAndPIN("Sign the document!")))
                 .withDocumentNumber(userDocumentNumberRequest.getDocumentNumber())
                 .initSignatureSession();
         Instant responseReceivedTime = Instant.now();
 
-        saveResponseAttributes(session, sessionResponse, responseReceivedTime);
+        saveResponseAttributes(session, signatureCertificateLevel, sessionResponse, responseReceivedTime);
 
         sessionsStatusService.startPolling(session, sessionResponse.getSessionID());
     }
@@ -97,18 +97,17 @@ public class SmartIdV3DynamicLinkSignatureService {
     public void startSigningWithPersonCode(HttpSession session, UserRequest userRequest) {
         notificationCertificateChoice.startCertificateChoice(session, userRequest);
         var signableData = toSignableData(userRequest.getFile(), session);
-
         var semanticsIdentifier = new SemanticsIdentifier(SemanticsIdentifier.IdentityType.PNO, userRequest.getCountry(), userRequest.getNationalIdentityNumber());
-
+        var requestedCertificateLevel = CertificateLevel.QUALIFIED;
         DynamicLinkSessionResponse sessionResponse = smartIdClientV3.createDynamicLinkSignature()
-                .withCertificateLevel(CertificateLevel.QUALIFIED)
+                .withCertificateLevel(requestedCertificateLevel)
                 .withSignableData(signableData)
                 .withSemanticsIdentifier(semanticsIdentifier)
                 .withAllowedInteractionsOrder(List.of(DynamicLinkInteraction.displayTextAndPIN("Sign the document!")))
                 .initSignatureSession();
         Instant responseReceivedTime = Instant.now();
 
-        saveResponseAttributes(session, sessionResponse, responseReceivedTime);
+        saveResponseAttributes(session, requestedCertificateLevel, sessionResponse, responseReceivedTime);
 
         sessionsStatusService.startPolling(session, sessionResponse.getSessionID());
     }
@@ -180,7 +179,11 @@ public class SmartIdV3DynamicLinkSignatureService {
         session.setAttribute("dataToSign", dataToSign);
     }
 
-    private static void saveResponseAttributes(HttpSession session, DynamicLinkSessionResponse sessionResponse, Instant responseReceivedTime) {
+    private static void saveResponseAttributes(HttpSession session,
+                                               CertificateLevel requestedCertificateLevel,
+                                               DynamicLinkSessionResponse sessionResponse,
+                                               Instant responseReceivedTime) {
+        session.setAttribute("requestedCertificateLevel", requestedCertificateLevel);
         session.setAttribute("sessionSecret", sessionResponse.getSessionSecret());
         session.setAttribute("sessionToken", sessionResponse.getSessionToken());
         session.setAttribute("sessionID", sessionResponse.getSessionID());
@@ -197,7 +200,8 @@ public class SmartIdV3DynamicLinkSignatureService {
 
     private static void saveValidateResponse(HttpSession session, SessionStatus status) {
         try {
-            var dynamicLinkSignatureResponse = SignatureResponseMapper.from(status, CertificateLevel.QUALIFIED.name());
+            CertificateLevel requestedCertificateLevel = (CertificateLevel) session.getAttribute("requestedCertificateLevel");
+            var dynamicLinkSignatureResponse = SignatureResponseMapper.from(status, requestedCertificateLevel.name());
             session.setAttribute("signing_response", dynamicLinkSignatureResponse);
         } catch (SessionTimeoutException | UserRefusedException | CertificateLevelMismatchException ex) {
             throw new SidOperationException(ex.getMessage());

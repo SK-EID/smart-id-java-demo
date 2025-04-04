@@ -10,12 +10,12 @@ package ee.sk.siddemo.services;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -34,6 +34,7 @@ import ee.sk.smartid.exception.useraction.SessionTimeoutException;
 import ee.sk.smartid.exception.useraction.UserRefusedException;
 import ee.sk.smartid.exception.useraction.UserSelectedWrongVerificationCodeException;
 import ee.sk.smartid.rest.dao.SemanticsIdentifier;
+import ee.sk.smartid.v3.AuthenticationCertificateLevel;
 import ee.sk.smartid.v3.AuthenticationResponseMapper;
 import ee.sk.smartid.v3.RandomChallenge;
 import ee.sk.smartid.v3.SmartIdClient;
@@ -60,27 +61,33 @@ public class SmartIdV3NotificationBasedAuthenticationService {
         var semanticsIdentifier = new SemanticsIdentifier(SemanticsIdentifier.IdentityType.PNO, userRequest.getCountry(), userRequest.getNationalIdentityNumber());
 
         String randomChallenge = RandomChallenge.generate();
+        var authenticationCertificateLevel = AuthenticationCertificateLevel.QUALIFIED;
         NotificationAuthenticationSessionResponse sessionResponse = smartIdClientV3.createNotificationAuthentication()
                 .withSemanticsIdentifier(semanticsIdentifier)
                 .withRandomChallenge(randomChallenge)
+                .withCertificateLevel(authenticationCertificateLevel)
                 .withAllowedInteractionsOrder(List.of(NotificationInteraction.verificationCodeChoice(displayText)))
                 .initAuthenticationSession();
 
         session.setAttribute("sessionID", sessionResponse.getSessionID());
         session.setAttribute("randomChallenge", randomChallenge);
+        session.setAttribute("requestedCertificateLevel", authenticationCertificateLevel);
         return sessionResponse.getVc().getValue();
     }
 
     public String startAuthenticationWithDocumentNumber(HttpSession session, UserDocumentNumberRequest userDocumentNumberRequest) {
         String randomChallenge = RandomChallenge.generate();
+        var requestedCertificateLevel = AuthenticationCertificateLevel.QUALIFIED;
         NotificationAuthenticationSessionResponse sessionResponse = smartIdClientV3.createNotificationAuthentication()
                 .withDocumentNumber(userDocumentNumberRequest.getDocumentNumber())
                 .withRandomChallenge(randomChallenge)
+                .withCertificateLevel(requestedCertificateLevel)
                 .withAllowedInteractionsOrder(List.of(NotificationInteraction.verificationCodeChoice(displayText)))
                 .initAuthenticationSession();
 
         session.setAttribute("sessionID", sessionResponse.getSessionID());
         session.setAttribute("randomChallenge", randomChallenge);
+        session.setAttribute("requestedCertificateLevel", requestedCertificateLevel);
         return sessionResponse.getVc().getValue();
     }
 

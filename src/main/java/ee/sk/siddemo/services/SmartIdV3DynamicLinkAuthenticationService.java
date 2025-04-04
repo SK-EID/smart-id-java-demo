@@ -10,12 +10,12 @@ package ee.sk.siddemo.services;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -37,6 +37,7 @@ import ee.sk.siddemo.model.UserRequest;
 import ee.sk.smartid.exception.useraction.SessionTimeoutException;
 import ee.sk.smartid.exception.useraction.UserRefusedException;
 import ee.sk.smartid.rest.dao.SemanticsIdentifier;
+import ee.sk.smartid.v3.AuthenticationCertificateLevel;
 import ee.sk.smartid.v3.AuthenticationResponseMapper;
 import ee.sk.smartid.v3.RandomChallenge;
 import ee.sk.smartid.v3.SmartIdClient;
@@ -64,14 +65,16 @@ public class SmartIdV3DynamicLinkAuthenticationService {
 
     public void startAuthentication(HttpSession session) {
         String randomChallenge = RandomChallenge.generate();
+        var authenticationCertificateLevel = AuthenticationCertificateLevel.QUALIFIED;
         DynamicLinkSessionResponse response = smartIdClientV3.createDynamicLinkAuthentication()
                 .withRandomChallenge(randomChallenge)
+                .withCertificateLevel(authenticationCertificateLevel)
                 .withAllowedInteractionsOrder(List.of(DynamicLinkInteraction.displayTextAndPIN(displayText)))
                 .withShareMdClientIpAddress(true)
                 .initAuthenticationSession();
         Instant responseReceivedTime = Instant.now();
 
-        updateSession(session, randomChallenge, response, responseReceivedTime);
+        updateSession(session, randomChallenge, authenticationCertificateLevel, response, responseReceivedTime);
 
         smartIdV3SessionsStatusService.startPolling(session, response.getSessionID());
     }
@@ -79,31 +82,34 @@ public class SmartIdV3DynamicLinkAuthenticationService {
     public void startAuthentication(HttpSession session, UserRequest userRequest) {
         String randomChallenge = RandomChallenge.generate();
         var semanticsIdentifier = new SemanticsIdentifier(SemanticsIdentifier.IdentityType.PNO, userRequest.getCountry(), userRequest.getNationalIdentityNumber());
-
+        var requestedCertificateLevel = AuthenticationCertificateLevel.QUALIFIED;
         DynamicLinkSessionResponse response = smartIdClientV3.createDynamicLinkAuthentication()
                 .withRandomChallenge(randomChallenge)
                 .withSemanticsIdentifier(semanticsIdentifier)
+                .withCertificateLevel(requestedCertificateLevel)
                 .withAllowedInteractionsOrder(List.of(DynamicLinkInteraction.displayTextAndPIN(displayText)))
                 .withShareMdClientIpAddress(true)
                 .initAuthenticationSession();
         Instant responseReceivedTime = Instant.now();
 
-        updateSession(session, randomChallenge, response, responseReceivedTime);
+        updateSession(session, randomChallenge, requestedCertificateLevel, response, responseReceivedTime);
 
         smartIdV3SessionsStatusService.startPolling(session, response.getSessionID());
     }
 
     public void startAuthentication(HttpSession session, UserDocumentNumberRequest userDocumentNumberRequest) {
         String randomChallenge = RandomChallenge.generate();
+        var requestedCertificateLevel = AuthenticationCertificateLevel.QUALIFIED;
         DynamicLinkSessionResponse response = smartIdClientV3.createDynamicLinkAuthentication()
                 .withRandomChallenge(randomChallenge)
                 .withDocumentNumber(userDocumentNumberRequest.getDocumentNumber())
+                .withCertificateLevel(requestedCertificateLevel)
                 .withAllowedInteractionsOrder(List.of(DynamicLinkInteraction.displayTextAndPIN(displayText)))
                 .withShareMdClientIpAddress(true)
                 .initAuthenticationSession();
         Instant responseReceivedTime = Instant.now();
 
-        updateSession(session, randomChallenge, response, responseReceivedTime);
+        updateSession(session, randomChallenge, requestedCertificateLevel, response, responseReceivedTime);
 
         smartIdV3SessionsStatusService.startPolling(session, response.getSessionID());
     }
@@ -123,8 +129,13 @@ public class SmartIdV3DynamicLinkAuthenticationService {
                 .orElse(false);
     }
 
-    private static void updateSession(HttpSession session, String randomChallenge, DynamicLinkSessionResponse response, Instant responseReceivedTime) {
+    private static void updateSession(HttpSession session,
+                                      String randomChallenge,
+                                      AuthenticationCertificateLevel certificateLevel,
+                                      DynamicLinkSessionResponse response,
+                                      Instant responseReceivedTime) {
         session.setAttribute("randomChallenge", randomChallenge);
+        session.setAttribute("requestedCertificateLevel", certificateLevel);
         session.setAttribute("sessionSecret", response.getSessionSecret());
         session.setAttribute("sessionToken", response.getSessionToken());
         session.setAttribute("sessionID", response.getSessionID());

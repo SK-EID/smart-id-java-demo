@@ -77,32 +77,33 @@ public class SmartIdV3NotificationBasedSigningService {
     public String startSigningWithDocumentNumber(HttpSession session, UserDocumentNumberRequest userDocumentNumberRequest) {
         notificationCertificateChoiceService.startCertificateChoice(session, userDocumentNumberRequest);
         var signableData = toSignableData(userDocumentNumberRequest.getFile(), session);
-
+        var signatureCertificateLevel = CertificateLevel.QUALIFIED;
         NotificationSignatureSessionResponse sessionResponse = smartIdClientV3.createNotificationSignature()
-                .withCertificateLevel(CertificateLevel.QUALIFIED)
+                .withCertificateLevel(signatureCertificateLevel)
                 .withSignableData(signableData)
                 .withDocumentNumber(userDocumentNumberRequest.getDocumentNumber())
                 .withAllowedInteractionsOrder(List.of(NotificationInteraction.verificationCodeChoice("Sign the document!")))
                 .initSignatureSession();
 
         session.setAttribute("sessionID", sessionResponse.getSessionID());
+        session.setAttribute("requestedCertificateLevel", signatureCertificateLevel);
         return sessionResponse.getVc().getValue();
     }
 
     public String startSigningWithPersonCode(HttpSession session, UserRequest userRequest) {
         notificationCertificateChoiceService.startCertificateChoice(session, userRequest);
         var signableData = toSignableData(userRequest.getFile(), session);
-
         var semanticsIdentifier = new SemanticsIdentifier(SemanticsIdentifier.IdentityType.PNO, userRequest.getCountry(), userRequest.getNationalIdentityNumber());
-
+        var signatureCertificateLevel = CertificateLevel.QUALIFIED;
         NotificationSignatureSessionResponse sessionResponse = smartIdClientV3.createNotificationSignature()
-                .withCertificateLevel(CertificateLevel.QUALIFIED)
+                .withCertificateLevel(signatureCertificateLevel)
                 .withSignableData(signableData)
                 .withSemanticsIdentifier(semanticsIdentifier)
                 .withAllowedInteractionsOrder(List.of(NotificationInteraction.verificationCodeChoice("Sign the document!")))
                 .initSignatureSession();
 
         session.setAttribute("sessionID", sessionResponse.getSessionID());
+        session.setAttribute("requestedCertificateLevel", signatureCertificateLevel);
         return sessionResponse.getVc().getValue();
     }
 
@@ -180,7 +181,8 @@ public class SmartIdV3NotificationBasedSigningService {
 
     private static void saveValidateResponse(HttpSession session, SessionStatus status) {
         try {
-            var signatureResponse = SignatureResponseMapper.from(status, CertificateLevel.QUALIFIED.name());
+            CertificateLevel requestedCertificateLevel = (CertificateLevel) session.getAttribute("requestedCertificateLevel");
+            var signatureResponse = SignatureResponseMapper.from(status, requestedCertificateLevel.name());
             session.setAttribute("signing_response", signatureResponse);
         } catch (SessionTimeoutException | UserRefusedException | CertificateLevelMismatchException | UserSelectedWrongVerificationCodeException ex) {
             throw new SidOperationException(ex.getMessage());
