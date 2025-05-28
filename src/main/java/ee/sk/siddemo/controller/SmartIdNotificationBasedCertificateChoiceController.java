@@ -72,13 +72,13 @@ public class SmartIdNotificationBasedCertificateChoiceController {
         return new ModelAndView("notification-based/certificate-choice", model);
     }
 
-    @PostMapping(value = "/v3/notification-based/start-certificate-choice-with-document-number")
+    @PostMapping(value = "/notification-based/start-certificate-choice-with-document-number")
     public ModelAndView startNotificationCertificateChoiceWithDocumentNumber(ModelMap model,
                                                                              HttpSession session,
                                                                              @ModelAttribute("userDocumentNumberRequest") @Valid UserDocumentNumberRequest userDocumentNumberRequest,
                                                                              BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return new ModelAndView("v3/main", "userDocumentNumberRequest", userDocumentNumberRequest);
+            return new ModelAndView("main", "userDocumentNumberRequest", userDocumentNumberRequest);
         }
         smartIdNotificationBasedCertificateChoiceService.startCertificateChoice(session, userDocumentNumberRequest);
         model.addAttribute("activeTab", "rp-api-v3");

@@ -72,7 +72,7 @@ public class SmartIdNotificationBasedAuthenticationController {
         return new ModelAndView("notification-based/authentication", model);
     }
 
-    @PostMapping("v3/notification-based/start-authentication-with-document-number")
+    @PostMapping("notification-based/start-authentication-with-document-number")
     public ModelAndView startAuthenticationWithDocumentNumber(@ModelAttribute("userDocumentNumberRequest") UserDocumentNumberRequest userDocumentNumberRequest,
                                                               BindingResult bindingResult,
                                                               ModelMap model,
