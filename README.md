@@ -1,7 +1,8 @@
+* Branch: `v3.1_JAVA21`
+
+This branch is created to test and prepare the Smart-ID Java demo application for future developments targeting `Smart-ID API v3.1` using `Java 21`.
 
 > [!CAUTION]
-> v3.0 of Smart-ID API is temporary and will change in near future
-> 
 > v3.0 endpoints in Smart-ID API Demo will be supported until May 2025
 
 # Smart-ID Java Demo
