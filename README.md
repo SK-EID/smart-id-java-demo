@@ -1,8 +1,12 @@
+* Branch: `v3.1_GLASSFISH`
 
-> [!CAUTION]
-> v3.0 of Smart-ID API is temporary and will change in near future
-> 
-> v3.0 endpoints in Smart-ID API Demo will be supported until May 2025
+This branch demonstrates how to configure the `Smart-ID Java client` to use a custom `Glassfish Jersey client` (`org.glassfish.jersey.client.ClientConfig`).  
+The goal is to test and provide a working example of overriding the default HTTP client configuration, for example to enable custom logging, timeouts, or advanced connection options.
+
+## Goals of this branch:
+* Add support for Glassfish Jersey `ClientConfig`
+* Override Smart-ID Java client’s internal client with custom configuration
+* Demonstrate how to inject JAX-RS client filters (e.g. logging via `JaxRsClientRequestLogger`)
 
 # Smart-ID Java Demo
 

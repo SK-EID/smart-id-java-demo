@@ -26,12 +26,15 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.util.concurrent.TimeUnit;
 
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import ee.sk.smartid.AuthenticationResponseValidator;
 import ee.sk.smartid.SmartIdClient;
+import ee.sk.siddemo.logging.JaxRsClientRequestLogger;
 
 @Configuration
 public class SmartIdConfig {
@@ -63,8 +66,23 @@ public class SmartIdConfig {
     @Value("${sid.truststore.trusted-root-certs.password}")
     private String sidTrustedRootCertsPassword;
 
+    @Value("${sid.client.connection-timeout-ms}")
+    private Integer connectionTimeoutMs;
+
+    @Value("${sid.client.read-timeout-ms}")
+    private Integer readTimeoutMs;
+
     @Bean
-    public SmartIdClient smartIdClient() throws Exception {
+    public ClientConfig glassfishClientConfig() {
+        var clientConfig = new ClientConfig();
+        clientConfig.property(ClientProperties.CONNECT_TIMEOUT, connectionTimeoutMs);
+        clientConfig.property(ClientProperties.READ_TIMEOUT, readTimeoutMs);
+        clientConfig.register(new JaxRsClientRequestLogger("Smart-ID"));
+        return clientConfig;
+    }
+
+    @Bean
+    public SmartIdClient smartIdClient(ClientConfig glassfishClientConfig) throws Exception {
         InputStream is = SmartIdConfig.class.getResourceAsStream(sidTrustedServerSslCertsFilename);
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
         trustStore.load(is, sidTrustedServerSslCertsPassword.toCharArray());
@@ -77,6 +95,8 @@ public class SmartIdConfig {
         client.setTrustStore(trustStore);
         client.setPollingSleepTimeout(TimeUnit.SECONDS, sidPollingTimeout);
         client.setSessionStatusResponseSocketOpenTime(TimeUnit.SECONDS, sidOpenSocketTimeout);
+
+        client.setNetworkConnectionConfig(glassfishClientConfig);
 
         return client;
     }

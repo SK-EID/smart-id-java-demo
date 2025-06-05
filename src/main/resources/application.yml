@@ -11,6 +11,8 @@ sid:
     polling-timeout-in-seconds: 5
     dynamic-link-url: https://sid.demo.sk.ee/dynamic-link/
     open-socket-timeout-in-seconds: 1
+    connection-timeout-ms: 10000
+    read-timeout-ms: 30000
   auth:
     displayText: Log in with Smart-ID demo?
   truststore:
@@ -23,3 +25,7 @@ sid:
 
 app:
   signed-files-directory: target/signed-files
+
+logging:
+  level:
+    Smart-ID: DEBUG
