@@ -46,8 +46,15 @@ import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.siddemo.model.UserDocumentNumberRequest;
 import ee.sk.siddemo.model.UserRequest;
 import ee.sk.smartid.CertificateByDocumentNumberResult;
+import ee.sk.smartid.CertificateChoiceResponse;
+import ee.sk.smartid.CertificateLevel;
+import ee.sk.smartid.DigestCalculator;
+import ee.sk.smartid.HashType;
+import ee.sk.smartid.SignableHash;
 import ee.sk.smartid.SignatureAlgorithm;
 import ee.sk.smartid.SignatureResponse;
+import ee.sk.smartid.SignatureResponseValidator;
+import ee.sk.smartid.SmartIdClient;
 import ee.sk.smartid.exception.useraccount.CertificateLevelMismatchException;
 import ee.sk.smartid.exception.useraction.SessionTimeoutException;
 import ee.sk.smartid.exception.useraction.UserRefusedException;
@@ -55,11 +62,6 @@ import ee.sk.smartid.rest.dao.DeviceLinkInteraction;
 import ee.sk.smartid.rest.dao.DeviceLinkSessionResponse;
 import ee.sk.smartid.rest.dao.HashAlgorithm;
 import ee.sk.smartid.rest.dao.SemanticsIdentifier;
-import ee.sk.smartid.CertificateChoiceResponse;
-import ee.sk.smartid.CertificateLevel;
-import ee.sk.smartid.SignableData;
-import ee.sk.smartid.SignatureResponseValidator;
-import ee.sk.smartid.SmartIdClient;
 import ee.sk.smartid.rest.dao.SessionStatus;
 import ee.sk.smartid.util.DeviceLinkUtil;
 import jakarta.servlet.http.HttpSession;
@@ -91,13 +93,13 @@ public class SmartIdDeviceLinkSignatureService {
                 .withCertificateLevel(signatureCertificateLevel)
                 .getCertificateByDocumentNumber();
 
-        SignableData signableData = toSignableData(userDocumentNumberRequest.getFile(), certificateByDocumentNumberResult.certificate(), session);
+        SignableHash signableData = toSignableData(userDocumentNumberRequest.getFile(), certificateByDocumentNumberResult.certificate(), session);
         List<DeviceLinkInteraction> interactions = List.of(DeviceLinkInteraction.displayTextAndPIN("Sign the document!"));
         String interactionsB64 = DeviceLinkUtil.encodeToBase64(interactions);
         session.setAttribute("interactions", interactionsB64);
         DeviceLinkSessionResponse sessionResponse = smartIdClient.createDeviceLinkSignature()
                 .withCertificateLevel(signatureCertificateLevel)
-                .withSignableData(signableData)
+                .withSignableHash(signableData)
                 .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA_512)
                 .withInteractions(List.of(DeviceLinkInteraction.displayTextAndPIN("Sign the document!")))
@@ -118,11 +120,11 @@ public class SmartIdDeviceLinkSignatureService {
                 .withDocumentNumber(documentNumber)
                 .withCertificateLevel(signatureCertificateLevel)
                 .getCertificateByDocumentNumber();
-        SignableData signableData = toSignableData(userRequest.getFile(), certificateByDocumentNumberResult.certificate(), session);
+        SignableHash signableData = toSignableData(userRequest.getFile(), certificateByDocumentNumberResult.certificate(), session);
         var semanticsIdentifier = new SemanticsIdentifier(SemanticsIdentifier.IdentityType.PNO, userRequest.getCountry(), userRequest.getNationalIdentityNumber());
         DeviceLinkSessionResponse sessionResponse = smartIdClient.createDeviceLinkSignature()
                 .withCertificateLevel(signatureCertificateLevel)
-                .withSignableData(signableData)
+                .withSignableHash(signableData)
                 .withSemanticsIdentifier(semanticsIdentifier)
                 .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA_512)
@@ -162,15 +164,15 @@ public class SmartIdDeviceLinkSignatureService {
                 signatureResponse.getCertificate().getSubjectDN());
     }
 
-    private SignableData toSignableData(MultipartFile file, X509Certificate certificate, HttpSession session) {
+    private SignableHash toSignableData(MultipartFile file, X509Certificate certificate, HttpSession session) {
         Container container = toContainer(file);
         DataToSign dataToSign = toDataToSign(container, certificate);
         saveSigningAttributes(session, container, dataToSign);
-        return new SignableData(dataToSign.getDataToSign());
-    }
-
-    private SignableData toSignableData(MultipartFile file, HttpSession session) {
-        return toSignableData(file, getX509Certificate(session), session);
+        SignableHash signableHash = new SignableHash();
+        byte[] digest = DigestCalculator.calculateDigest(dataToSign.getDataToSign(), HashType.SHA512);
+        signableHash.setHash(digest);
+        signableHash.setHashType(HashType.SHA512);
+        return signableHash;
     }
 
     private Container toContainer(MultipartFile file) {
@@ -221,14 +223,14 @@ public class SmartIdDeviceLinkSignatureService {
                                       CertificateLevel requestedCertificateLevel,
                                       DeviceLinkSessionResponse sessionResponse,
                                       Instant responseReceivedTime,
-                                      SignableData signableData) {
+                                      SignableHash signableHash) {
         session.setAttribute("signatureCertificateLevel", requestedCertificateLevel);
         session.setAttribute("sessionSecret", sessionResponse.getSessionSecret());
         session.setAttribute("sessionToken", sessionResponse.getSessionToken());
         session.setAttribute("sessionID", sessionResponse.getSessionID());
         session.setAttribute("deviceLinkBase", sessionResponse.getDeviceLinkBase().toString());
         session.setAttribute("responseReceivedTime", responseReceivedTime);
-        session.setAttribute("rpChallenge", signableData.calculateHashInBase64());
+        session.setAttribute("rpChallenge", signableHash.getHashInBase64());
         session.setAttribute("interactions", DeviceLinkUtil.encodeToBase64(List.of(DeviceLinkInteraction.displayTextAndPIN("Sign the document!"))));
     }
 
