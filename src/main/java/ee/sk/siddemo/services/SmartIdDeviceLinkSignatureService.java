@@ -36,6 +36,7 @@ import org.digidoc4j.DataToSign;
 import org.digidoc4j.DigestAlgorithm;
 import org.digidoc4j.SignatureBuilder;
 import org.digidoc4j.SignatureProfile;
+import org.digidoc4j.impl.asic.SKCommonCertificateVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,6 @@ import ee.sk.siddemo.model.UserRequest;
 import ee.sk.smartid.CertificateByDocumentNumberResult;
 import ee.sk.smartid.CertificateChoiceResponse;
 import ee.sk.smartid.CertificateLevel;
-import ee.sk.smartid.DigestCalculator;
 import ee.sk.smartid.HashType;
 import ee.sk.smartid.SignableHash;
 import ee.sk.smartid.SignatureAlgorithm;
@@ -64,6 +64,20 @@ import ee.sk.smartid.rest.dao.HashAlgorithm;
 import ee.sk.smartid.rest.dao.SemanticsIdentifier;
 import ee.sk.smartid.rest.dao.SessionStatus;
 import ee.sk.smartid.util.DeviceLinkUtil;
+import eu.europa.esig.dss.asic.xades.ASiCWithXAdESSignatureParameters;
+import eu.europa.esig.dss.asic.xades.signature.ASiCWithXAdESService;
+import eu.europa.esig.dss.enumerations.ASiCContainerType;
+import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
+import eu.europa.esig.dss.enumerations.MaskGenerationFunction;
+import eu.europa.esig.dss.enumerations.MimeType;
+import eu.europa.esig.dss.enumerations.SignatureLevel;
+import eu.europa.esig.dss.enumerations.SignaturePackaging;
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.InMemoryDocument;
+import eu.europa.esig.dss.model.ToBeSigned;
+import eu.europa.esig.dss.model.x509.CertificateToken;
+import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
+import eu.europa.esig.dss.spi.DSSUtils;
 import jakarta.servlet.http.HttpSession;
 
 @Service
@@ -166,13 +180,43 @@ public class SmartIdDeviceLinkSignatureService {
 
     private SignableHash toSignableData(MultipartFile file, X509Certificate certificate, HttpSession session) {
         Container container = toContainer(file);
-        DataToSign dataToSign = toDataToSign(container, certificate);
-        saveSigningAttributes(session, container, dataToSign);
-        SignableHash signableHash = new SignableHash();
-        byte[] digest = DigestCalculator.calculateDigest(dataToSign.getDataToSign(), HashType.SHA512);
-        signableHash.setHash(digest);
-        signableHash.setHashType(HashType.SHA512);
-        return signableHash;
+
+        ASiCWithXAdESSignatureParameters asicParams = new ASiCWithXAdESSignatureParameters();
+        asicParams.setSignatureLevel(SignatureLevel.XAdES_BASELINE_LT);
+        asicParams.setSignaturePackaging(SignaturePackaging.DETACHED);
+        asicParams.setEncryptionAlgorithm(EncryptionAlgorithm.RSA);
+        asicParams.setDigestAlgorithm(eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA512);
+        asicParams.setSigningCertificate(new CertificateToken(certificate));
+        asicParams.setMaskGenerationFunction(MaskGenerationFunction.MGF1);
+
+        asicParams.aSiC().setContainerType(ASiCContainerType.ASiC_E);
+        asicParams.aSiC().setMimeType("application/vnd.etsi.asic-e+zip");
+
+
+        ASiCWithXAdESService asicService = new ASiCWithXAdESService(new SKCommonCertificateVerifier());
+        OnlineTSPSource tspSource = new OnlineTSPSource("http://demo.sk.ee/tsa");
+        asicService.setTspSource(tspSource);
+
+        try {
+            DSSDocument document = new InMemoryDocument(
+                    file.getInputStream(),
+                    file.getOriginalFilename(),
+                    MimeType.fromMimeTypeString(file.getContentType())
+            );
+            ToBeSigned dataToSign = asicService.getDataToSign(List.of(document), asicParams);
+            session.setAttribute("container", container);
+            session.setAttribute("dataToSign", dataToSign);
+            session.setAttribute("containerService", asicService);
+            session.setAttribute("dssDocument", document);
+            session.setAttribute("signatureParameters", asicParams);
+            byte[] digest = DSSUtils.digest(eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA512, dataToSign.getBytes());
+            var signableHash = new SignableHash();
+            signableHash.setHash(digest);
+            signableHash.setHashType(HashType.SHA512);
+            return signableHash;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Container toContainer(MultipartFile file) {

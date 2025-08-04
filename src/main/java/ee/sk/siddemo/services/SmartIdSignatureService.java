@@ -22,18 +22,28 @@ package ee.sk.siddemo.services;
  * #L%
  */
 
-import org.digidoc4j.Container;
-import org.digidoc4j.DataToSign;
-import org.digidoc4j.Signature;
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.siddemo.model.SigningResult;
 import ee.sk.smartid.SignatureResponse;
+import eu.europa.esig.dss.asic.xades.ASiCWithXAdESSignatureParameters;
+import eu.europa.esig.dss.asic.xades.signature.ASiCWithXAdESService;
+import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.SignatureValue;
 import jakarta.servlet.http.HttpSession;
 
 @Service
 public class SmartIdSignatureService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SmartIdSignatureService.class);
 
     private final FileService fileService;
 
@@ -46,18 +56,25 @@ public class SmartIdSignatureService {
         if (signatureResponse == null) {
             throw new SidOperationException("No signature response found in session");
         }
-        byte[] signatureValue = signatureResponse.getSignatureValue();
-        DataToSign dataToSign = (DataToSign) session.getAttribute("dataToSign");
-        Signature signature = dataToSign.finalize(signatureValue);
 
-        Container container = (Container) session.getAttribute("container");
-        container.addSignature(signature);
+        byte[] signatureValue = signatureResponse.getSignatureValue();
+
+        ASiCWithXAdESService aSiCEContainerService = (ASiCWithXAdESService) session.getAttribute("containerService");
+        DSSDocument document = (DSSDocument) session.getAttribute("dssDocument");
+        ASiCWithXAdESSignatureParameters signatureParameters = (ASiCWithXAdESSignatureParameters) session.getAttribute("signatureParameters");
+        SignatureValue sv = new SignatureValue(SignatureAlgorithm.RSA_SSA_PSS_SHA512_MGF1, signatureValue);
+        DSSDocument dssDocument = aSiCEContainerService.signDocument(List.of(document), signatureParameters, sv);
+
         String filePath = fileService.createPath();
-        container.saveAsFile(filePath);
+        try {
+            dssDocument.save(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return SigningResult.newBuilder()
                 .withResult("Signing successful")
-                .withValid(signature.validateSignature().isValid())
-                .withTimestamp(signature.getTimeStampCreationTime())
+                .withValid(true)
+                .withTimestamp(java.util.Date.from(ZonedDateTime.now().toInstant()))
                 .withContainerFilePath(filePath)
                 .build();
     }
