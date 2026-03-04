@@ -36,10 +36,10 @@ import ee.sk.siddemo.model.UserActionMock;
 import ee.sk.siddemo.model.UserDocumentNumberRequest;
 import ee.sk.siddemo.model.UserRequest;
 import ee.sk.smartid.AuthenticationCertificateLevel;
+import ee.sk.smartid.AuthenticationSignatureAlgorithm;
 import ee.sk.smartid.DeviceLinkAuthenticationSessionRequestBuilder;
 import ee.sk.smartid.HashAlgorithm;
 import ee.sk.smartid.RpChallengeGenerator;
-import ee.sk.smartid.SignatureAlgorithm;
 import ee.sk.smartid.SmartIdClient;
 import ee.sk.smartid.common.devicelink.CallbackUrl;
 import ee.sk.smartid.common.devicelink.interactions.DeviceLinkInteraction;
@@ -79,7 +79,7 @@ public class SmartIdDeviceLinkAuthenticationService {
         DeviceLinkAuthenticationSessionRequestBuilder builder = smartIdClient.createDeviceLinkAuthentication()
                 .withRpChallenge(rpChallenge)
                 .withCertificateLevel(authenticationCertificateLevel)
-                .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(AuthenticationSignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA3_512)
                 .withInteractions(List.of(DeviceLinkInteraction.displayTextAndPin(displayText)))
                 .withInitialCallbackUrl(callbackUrl.initialCallbackUri().toString())
@@ -102,7 +102,7 @@ public class SmartIdDeviceLinkAuthenticationService {
                 .withRpChallenge(rpChallenge)
                 .withSemanticsIdentifier(semanticsIdentifier)
                 .withCertificateLevel(requestedCertificateLevel)
-                .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(AuthenticationSignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA3_512)
                 .withShareMdClientIpAddress(true)
                 .withInteractions(interactions);
@@ -123,7 +123,7 @@ public class SmartIdDeviceLinkAuthenticationService {
                 .withRpChallenge(rpChallenge)
                 .withDocumentNumber(userDocumentNumberRequest.getDocumentNumber())
                 .withCertificateLevel(requestedCertificateLevel)
-                .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(AuthenticationSignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA3_512)
                 .withShareMdClientIpAddress(true)
                 .withInteractions(interactions);

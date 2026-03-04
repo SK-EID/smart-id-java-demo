@@ -50,9 +50,9 @@ import ee.sk.smartid.CertificateByDocumentNumberResult;
 import ee.sk.smartid.CertificateLevel;
 import ee.sk.smartid.DeviceLinkSignatureSessionRequestBuilder;
 import ee.sk.smartid.SignableData;
-import ee.sk.smartid.SignatureAlgorithm;
 import ee.sk.smartid.SignatureResponse;
 import ee.sk.smartid.SignatureResponseValidator;
+import ee.sk.smartid.SigningSignatureAlgorithm;
 import ee.sk.smartid.SmartIdClient;
 import ee.sk.smartid.common.devicelink.CallbackUrl;
 import ee.sk.smartid.common.devicelink.interactions.DeviceLinkInteraction;
@@ -105,7 +105,7 @@ public class SmartIdDeviceLinkSignatureService {
         var deviceLinkSignatureSessionRequestBuilder = smartIdClient.createDeviceLinkSignature()
                 .withCertificateLevel(signatureCertificateLevel)
                 .withSignableData(signableData)
-                .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(SigningSignatureAlgorithm.RSASSA_PSS)
                 .withInteractions(List.of(DeviceLinkInteraction.displayTextAndPin("Sign the document!")))
                 .withDocumentNumber(userDocumentNumberRequest.getDocumentNumber())
                 .withInitialCallbackUrl(callbackUrl.initialCallbackUri().toString());
@@ -134,7 +134,7 @@ public class SmartIdDeviceLinkSignatureService {
                 .withCertificateLevel(signatureCertificateLevel)
                 .withSignableData(signableData)
                 .withSemanticsIdentifier(semanticsIdentifier)
-                .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(SigningSignatureAlgorithm.RSASSA_PSS)
                 .withInteractions(List.of(DeviceLinkInteraction.displayTextAndPin("Sign the document!")))
                 .withInitialCallbackUrl(callbackUrl.initialCallbackUri().toString());
         DeviceLinkSessionResponse sessionResponse = builder.initSignatureSession();
