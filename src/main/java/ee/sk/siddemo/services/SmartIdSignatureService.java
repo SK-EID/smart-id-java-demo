@@ -34,6 +34,7 @@ import ee.sk.siddemo.model.SigningResult;
 import ee.sk.smartid.SignatureResponse;
 import ee.sk.smartid.SignatureValueValidator;
 import ee.sk.smartid.SignatureValueValidatorImpl;
+import ee.sk.smartid.SigningSignatureAlgorithm;
 import jakarta.servlet.http.HttpSession;
 
 @Service
@@ -53,11 +54,20 @@ public class SmartIdSignatureService {
             throw new SidOperationException("Required session data is missing");
         }
         SignatureValueValidator validator = new SignatureValueValidatorImpl();
-        validator.validate(
-                signatureResponse.getSignatureValue(),
-                dataToSign.getDataToSign(),
-                signatureResponse.getCertificate(),
-                signatureResponse.getRsaSsaPssParameters());
+        SigningSignatureAlgorithm signatureAlgorithm = signatureResponse.getSignatureAlgorithm();
+        if (signatureAlgorithm != null && signatureAlgorithm.isLegacyRsa()) {
+            validator.validate(
+                    signatureResponse.getSignatureValue(),
+                    dataToSign.getDataToSign(),
+                    signatureResponse.getCertificate(),
+                    signatureAlgorithm.getAlgorithmName());
+        } else {
+            validator.validate(
+                    signatureResponse.getSignatureValue(),
+                    dataToSign.getDataToSign(),
+                    signatureResponse.getCertificate(),
+                    signatureResponse.getRsaSsaPssParameters());
+        }
 
         return SigningResult.newBuilder()
                 .withResult("Signing successful")

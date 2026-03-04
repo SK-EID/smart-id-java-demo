@@ -41,6 +41,8 @@ public class UserRequest {
 
     private UserActionMock userActionMock = UserActionMock.NONE;
 
+    private String signingSignatureAlgorithm = "rsassa-pss";
+
     private MultipartFile file;
 
     public String getNationalIdentityNumber() {
@@ -73,5 +75,13 @@ public class UserRequest {
 
     public void setUserActionMock(UserActionMock userActionMock) {
         this.userActionMock = userActionMock;
+    }
+
+    public String getSigningSignatureAlgorithm() {
+        return signingSignatureAlgorithm;
+    }
+
+    public void setSigningSignatureAlgorithm(String signingSignatureAlgorithm) {
+        this.signingSignatureAlgorithm = signingSignatureAlgorithm;
     }
 }

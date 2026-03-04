@@ -31,6 +31,7 @@ public class UserDocumentNumberRequest {
     @NotNull
     private String documentNumber;
     private MultipartFile file;
+    private String signingSignatureAlgorithm = "rsassa-pss";
     private UserActionMock userActionMock = UserActionMock.NONE;
 
     public String getDocumentNumber() {
@@ -55,5 +56,13 @@ public class UserDocumentNumberRequest {
 
     public void setUserActionMock(UserActionMock userActionMock) {
         this.userActionMock = userActionMock;
+    }
+
+    public String getSigningSignatureAlgorithm() {
+        return signingSignatureAlgorithm;
+    }
+
+    public void setSigningSignatureAlgorithm(String signingSignatureAlgorithm) {
+        this.signingSignatureAlgorithm = signingSignatureAlgorithm;
     }
 }

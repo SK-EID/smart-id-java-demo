@@ -90,6 +90,7 @@ public class SmartIdDeviceLinkSignatureService {
     }
 
     public void startSigningWithDocumentNumber(HttpSession session, UserDocumentNumberRequest userDocumentNumberRequest) {
+        SigningSignatureAlgorithm signatureAlgorithm = fromRequestOrDefault(userDocumentNumberRequest.getSigningSignatureAlgorithm());
         var signatureCertificateLevel = CertificateLevel.QUALIFIED;
         CertificateByDocumentNumberResult certificateByDocumentNumberResult = smartIdClient
                 .createCertificateByDocumentNumber()
@@ -101,11 +102,11 @@ public class SmartIdDeviceLinkSignatureService {
 
         CallbackUrl callbackUrl = CallbackUrlUtil.createCallbackUrl(callbackUrlBase);
         sessionInfoBuilder.withCallbackUrl(callbackUrl);
-        SignableData signableData = toSignableData(userDocumentNumberRequest.getFile(), certificateByDocumentNumberResult.certificate(), sessionInfoBuilder);
+        SignableData signableData = toSignableData(userDocumentNumberRequest.getFile(), certificateByDocumentNumberResult.certificate(), sessionInfoBuilder, signatureAlgorithm);
         var deviceLinkSignatureSessionRequestBuilder = smartIdClient.createDeviceLinkSignature()
                 .withCertificateLevel(signatureCertificateLevel)
                 .withSignableData(signableData)
-                .withSignatureAlgorithm(SigningSignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(signatureAlgorithm)
                 .withInteractions(List.of(DeviceLinkInteraction.displayTextAndPin("Sign the document!")))
                 .withDocumentNumber(userDocumentNumberRequest.getDocumentNumber())
                 .withInitialCallbackUrl(callbackUrl.initialCallbackUri().toString());
@@ -118,6 +119,7 @@ public class SmartIdDeviceLinkSignatureService {
     }
 
     public void startSigningWithPersonCode(HttpSession session, UserRequest userRequest) {
+        SigningSignatureAlgorithm signatureAlgorithm = fromRequestOrDefault(userRequest.getSigningSignatureAlgorithm());
         var signatureCertificateLevel = CertificateLevel.QUALIFIED;
         String documentNumber = (String) session.getAttribute("documentNumber");
         CertificateByDocumentNumberResult certificateByDocumentNumberResult = smartIdClient
@@ -128,13 +130,13 @@ public class SmartIdDeviceLinkSignatureService {
         var sessionInfoBuilder = DeviceLinkSignatureSessionInfo.builder().withRequestedCertificateLevel(signatureCertificateLevel);
         CallbackUrl callbackUrl = CallbackUrlUtil.createCallbackUrl(callbackUrlBase);
         sessionInfoBuilder.withCallbackUrl(callbackUrl);
-        SignableData signableData = toSignableData(userRequest.getFile(), certificateByDocumentNumberResult.certificate(), sessionInfoBuilder);
+        SignableData signableData = toSignableData(userRequest.getFile(), certificateByDocumentNumberResult.certificate(), sessionInfoBuilder, signatureAlgorithm);
         var semanticsIdentifier = new SemanticsIdentifier(SemanticsIdentifier.IdentityType.PNO, userRequest.getCountry(), userRequest.getNationalIdentityNumber());
         DeviceLinkSignatureSessionRequestBuilder builder = smartIdClient.createDeviceLinkSignature()
                 .withCertificateLevel(signatureCertificateLevel)
                 .withSignableData(signableData)
                 .withSemanticsIdentifier(semanticsIdentifier)
-                .withSignatureAlgorithm(SigningSignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(signatureAlgorithm)
                 .withInteractions(List.of(DeviceLinkInteraction.displayTextAndPin("Sign the document!")))
                 .withInitialCallbackUrl(callbackUrl.initialCallbackUri().toString());
         DeviceLinkSessionResponse sessionResponse = builder.initSignatureSession();
@@ -165,12 +167,18 @@ public class SmartIdDeviceLinkSignatureService {
                 signatureResponse.getCertificate().getSubjectDN());
     }
 
-    private SignableData toSignableData(MultipartFile file, X509Certificate certificate, DeviceLinkSignatureSessionInfo.Builder sessionInfoBuilder) {
+    private SignableData toSignableData(MultipartFile file, X509Certificate certificate,
+                                        DeviceLinkSignatureSessionInfo.Builder sessionInfoBuilder,
+                                        SigningSignatureAlgorithm signatureAlgorithm) {
         Container container = toContainer(file);
-        DataToSign dataToSign = toDataToSign(container, certificate);
+        DataToSign dataToSign = toDataToSign(container, certificate, signatureAlgorithm);
 
         sessionInfoBuilder.withContainer(container).withDataToSign(dataToSign);
-        return new SignableData(dataToSign.getDataToSign());
+        byte[] dataToSignBytes = dataToSign.getDataToSign();
+        if (signatureAlgorithm.isLegacyRsa()) {
+            return new SignableData(dataToSignBytes, signatureAlgorithm.getHashAlgorithmForLegacy());
+        }
+        return new SignableData(dataToSignBytes);
     }
 
     private Container toContainer(MultipartFile file) {
@@ -191,12 +199,32 @@ public class SmartIdDeviceLinkSignatureService {
         }
     }
 
-    private static DataToSign toDataToSign(Container container, X509Certificate certificate) {
+    private static DataToSign toDataToSign(Container container, X509Certificate certificate,
+                                          SigningSignatureAlgorithm signatureAlgorithm) {
         return SignatureBuilder.aSignature(container)
                 .withSigningCertificate(certificate)
-                .withSignatureDigestAlgorithm(DigestAlgorithm.SHA512)
+                .withSignatureDigestAlgorithm(toDigestAlgorithm(signatureAlgorithm))
                 .withSignatureProfile(SignatureProfile.LT)
                 .buildDataToSign();
+    }
+
+    private static SigningSignatureAlgorithm fromRequestOrDefault(String signingSignatureAlgorithm) {
+        if (signingSignatureAlgorithm == null || signingSignatureAlgorithm.isBlank()) {
+            return SigningSignatureAlgorithm.RSASSA_PSS;
+        }
+        return SigningSignatureAlgorithm.fromString(signingSignatureAlgorithm.trim());
+    }
+
+    private static DigestAlgorithm toDigestAlgorithm(SigningSignatureAlgorithm signatureAlgorithm) {
+        if (signatureAlgorithm.isLegacyRsa()) {
+            return switch (signatureAlgorithm) {
+                case SHA256_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA256;
+                case SHA384_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA384;
+                case SHA512_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA512;
+                default -> DigestAlgorithm.SHA512;
+            };
+        }
+        return DigestAlgorithm.SHA512;
     }
 
     private void saveValidateResponse(HttpSession session, SessionStatus status) {
