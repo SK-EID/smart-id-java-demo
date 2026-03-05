@@ -24,8 +24,12 @@ package ee.sk.siddemo.services;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.Optional;
 
+import org.digidoc4j.Container;
 import org.digidoc4j.DataToSign;
+import org.digidoc4j.Signature;
+import org.digidoc4j.ValidationResult;
 import org.springframework.stereotype.Service;
 
 import ee.sk.siddemo.exception.SidOperationException;
@@ -41,9 +45,11 @@ import jakarta.servlet.http.HttpSession;
 public class SmartIdSignatureService {
 
     private final SessionStore sessionStore;
+    private final FileService fileService;
 
-    public SmartIdSignatureService(SessionStore sessionStore) {
+    public SmartIdSignatureService(SessionStore sessionStore, FileService fileService) {
         this.sessionStore = sessionStore;
+        this.fileService = fileService;
     }
 
     public SigningResult handleSignatureResult(HttpSession session) {
@@ -69,11 +75,45 @@ public class SmartIdSignatureService {
                     signatureResponse.getRsaSsaPssParameters());
         }
 
+        boolean valid = true;
+        Date timestamp = Date.from(ZonedDateTime.now().toInstant());
+        String containerFilePath = "N/A – container not created in demo";
+
+        // DigiDoc4J finalize() verifies the signature using RSA PKCS#1 v1.5 only; it does not support RSASSA-PSS.
+        // When Smart-ID returns an RSASSA-PSS signature, skip container finalization and saving
+        // so that signing still succeeds (client-side validation above already passed).
+        boolean useDigiDoc4JContainer = signatureAlgorithm != null && signatureAlgorithm.isLegacyRsa();
+
+        Optional<Container> maybeContainer = signatureSessionInfo.getContainer();
+        if (useDigiDoc4JContainer && maybeContainer.isPresent()) {
+            Container container = maybeContainer.get();
+            byte[] signatureValue = signatureResponse.getSignatureValue();
+            Signature digiDoc4jSignature = dataToSign.finalize(signatureValue);
+            container.addSignature(digiDoc4jSignature);
+
+            ValidationResult validationResult = digiDoc4jSignature.validateSignature();
+            valid = validationResult.isValid();
+            Date ts = digiDoc4jSignature.getTimeStampCreationTime();
+            if (ts != null) {
+                timestamp = ts;
+            }
+
+            try {
+                String targetPath = fileService.createPath();
+                container.saveAsFile(targetPath);
+                containerFilePath = targetPath;
+            } catch (RuntimeException e) {
+                throw new SidOperationException("Could not save signed container", e);
+            }
+        } else if (!useDigiDoc4JContainer && maybeContainer.isPresent()) {
+            containerFilePath = "N/A – container not saved (RSASSA-PSS not supported by DigiDoc4J finalization)";
+        }
+
         return SigningResult.newBuilder()
                 .withResult("Signing successful")
-                .withValid(true)
-                .withTimestamp(Date.from(ZonedDateTime.now().toInstant()))
-                .withContainerFilePath("N/A – container not created in demo")
+                .withValid(valid)
+                .withTimestamp(timestamp)
+                .withContainerFilePath(containerFilePath)
                 .build();
     }
 

@@ -23,6 +23,7 @@ package ee.sk.siddemo.model;
  */
 
 import java.time.Instant;
+import java.util.Optional;
 
 import org.digidoc4j.Container;
 import org.digidoc4j.DataToSign;
@@ -131,8 +132,9 @@ public class DeviceLinkSignatureSessionInfo implements DeviceLinkSessionInfo, Si
         return new Builder();
     }
 
-    public Container getContainer() {
-        return container;
+    @Override
+    public Optional<Container> getContainer() {
+        return Optional.of(container);
     }
 
     @Override

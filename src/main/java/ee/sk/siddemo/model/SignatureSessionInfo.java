@@ -22,6 +22,9 @@ package ee.sk.siddemo.model;
  * #L%
  */
 
+import java.util.Optional;
+
+import org.digidoc4j.Container;
 import org.digidoc4j.DataToSign;
 
 import ee.sk.smartid.SignatureResponse;
@@ -31,4 +34,8 @@ public interface SignatureSessionInfo {
     SignatureResponse getSignatureResponse();
 
     DataToSign getDataToSign();
+
+    default Optional<Container> getContainer() {
+        return Optional.empty();
+    }
 }
