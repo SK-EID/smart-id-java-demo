@@ -28,11 +28,21 @@ public class LinkedSigningRequest {
 
     private MultipartFile file;
 
+    private String signingSignatureAlgorithm = "rsassa-pss";
+
     public MultipartFile getFile() {
         return file;
     }
 
     public void setFile(MultipartFile file) {
         this.file = file;
+    }
+
+    public String getSigningSignatureAlgorithm() {
+        return signingSignatureAlgorithm;
+    }
+
+    public void setSigningSignatureAlgorithm(String signingSignatureAlgorithm) {
+        this.signingSignatureAlgorithm = signingSignatureAlgorithm;
     }
 }

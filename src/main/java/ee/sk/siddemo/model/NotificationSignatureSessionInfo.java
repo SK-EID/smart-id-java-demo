@@ -22,8 +22,6 @@ package ee.sk.siddemo.model;
  * #L%
  */
 
-import java.util.Optional;
-
 import org.digidoc4j.Container;
 import org.digidoc4j.DataToSign;
 
@@ -69,8 +67,8 @@ public class NotificationSignatureSessionInfo implements SignatureSessionInfo {
     }
 
     @Override
-    public Optional<Container> getContainer() {
-        return Optional.of(container);
+    public Container getContainer() {
+        return container;
     }
 
     public void setSignatureResponse(SignatureResponse signatureResponse) {

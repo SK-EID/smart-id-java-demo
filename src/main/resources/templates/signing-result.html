@@ -18,7 +18,9 @@
         <h4 class="alert-heading text-center" th:text="${signingResult.result}"></h4>
         <h6 th:text="${'Signature is valid: ' + signingResult.valid}" class="text-center"></h6>
         <h6 th:text="${'Signed at:' + signingResult.timestamp}" class="text-center"></h6>
-        <p th:text="${'Signed container is at: ' + signingResult.containerFilePath}" class="text-center"></p>
+        <p th:text="${'Signed container is at: ' + signingResult.containerFilePath}"
+           th:classappend="${signingResult.containerFilePath != null and #strings.startsWith(signingResult.containerFilePath, 'N/A')} ? 'text-danger' : ''"
+           class="text-center"></p>
     </div>
 </div>
 

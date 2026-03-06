@@ -24,7 +24,6 @@ package ee.sk.siddemo.services;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.Optional;
 
 import org.digidoc4j.Container;
 import org.digidoc4j.DataToSign;
@@ -53,7 +52,7 @@ public class SmartIdSignatureService {
     }
 
     public SigningResult handleSignatureResult(HttpSession session) {
-        SignatureSessionInfo signatureSessionInfo = getSignatureSessionInfo(session);
+        SignatureSessionInfo signatureSessionInfo = consumeSignatureSessionInfo(session);
         SignatureResponse signatureResponse = signatureSessionInfo.getSignatureResponse();
         DataToSign dataToSign = signatureSessionInfo.getDataToSign();
         if (signatureResponse == null || dataToSign == null) {
@@ -82,11 +81,11 @@ public class SmartIdSignatureService {
         // DigiDoc4J finalize() verifies the signature using RSA PKCS#1 v1.5 only; it does not support RSASSA-PSS.
         // When Smart-ID returns an RSASSA-PSS signature, skip container finalization and saving
         // so that signing still succeeds (client-side validation above already passed).
+        // When RSASSA-PSS support is added to DigiDoc4J then all algorithms can use DigiDoc4JContainer
         boolean useDigiDoc4JContainer = signatureAlgorithm != null && signatureAlgorithm.isLegacyRsa();
 
-        Optional<Container> maybeContainer = signatureSessionInfo.getContainer();
-        if (useDigiDoc4JContainer && maybeContainer.isPresent()) {
-            Container container = maybeContainer.get();
+        Container container = signatureSessionInfo.getContainer();
+        if (useDigiDoc4JContainer && container != null) {
             byte[] signatureValue = signatureResponse.getSignatureValue();
             Signature digiDoc4jSignature = dataToSign.finalize(signatureValue);
             container.addSignature(digiDoc4jSignature);
@@ -105,7 +104,9 @@ public class SmartIdSignatureService {
             } catch (RuntimeException e) {
                 throw new SidOperationException("Could not save signed container", e);
             }
-        } else if (!useDigiDoc4JContainer && maybeContainer.isPresent()) {
+        } else if (useDigiDoc4JContainer) {
+            throw new SidOperationException("Container was not created for this signing session");
+        } else if (container != null) {
             containerFilePath = "N/A – container not saved (RSASSA-PSS not supported by DigiDoc4J finalization)";
         }
 
@@ -117,13 +118,16 @@ public class SmartIdSignatureService {
                 .build();
     }
 
-    private SignatureSessionInfo getSignatureSessionInfo(HttpSession session) {
-        SignatureSessionInfo deviceLinkSignatureSessionInfo = (SignatureSessionInfo) sessionStore.get(session.getId(), "deviceLinkSessionInfo");
+    private SignatureSessionInfo consumeSignatureSessionInfo(HttpSession session) {
+        String sessionId = session.getId();
+        SignatureSessionInfo deviceLinkSignatureSessionInfo = (SignatureSessionInfo) sessionStore.get(sessionId, "deviceLinkSessionInfo");
         if (deviceLinkSignatureSessionInfo != null) {
+            sessionStore.remove(sessionId, "deviceLinkSessionInfo");
             return deviceLinkSignatureSessionInfo;
         }
-        SignatureSessionInfo notificationBasedSignatureSessionInfo = (SignatureSessionInfo) sessionStore.get(session.getId(), "notificationSignatureSessionInfo");
+        SignatureSessionInfo notificationBasedSignatureSessionInfo = (SignatureSessionInfo) sessionStore.get(sessionId, "notificationSignatureSessionInfo");
         if (notificationBasedSignatureSessionInfo != null) {
+            sessionStore.remove(sessionId, "notificationSignatureSessionInfo");
             return notificationBasedSignatureSessionInfo;
         }
         throw new SidOperationException("No signature session info found in the current session");

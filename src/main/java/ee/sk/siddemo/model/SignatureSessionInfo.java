@@ -22,8 +22,6 @@ package ee.sk.siddemo.model;
  * #L%
  */
 
-import java.util.Optional;
-
 import org.digidoc4j.Container;
 import org.digidoc4j.DataToSign;
 
@@ -35,7 +33,9 @@ public interface SignatureSessionInfo {
 
     DataToSign getDataToSign();
 
-    default Optional<Container> getContainer() {
-        return Optional.empty();
-    }
+    /**
+     * Container associated with this signing flow.
+     * May be {@code null} for flows that do not create a DigiDoc4J container.
+     */
+    Container getContainer();
 }
