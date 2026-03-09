@@ -36,9 +36,7 @@ import ee.sk.siddemo.model.UserActionMock;
 import ee.sk.siddemo.model.UserDocumentNumberRequest;
 import ee.sk.siddemo.model.UserRequest;
 import ee.sk.smartid.AuthenticationCertificateLevel;
-import ee.sk.smartid.AuthenticationSignatureAlgorithm;
 import ee.sk.smartid.DeviceLinkAuthenticationSessionRequestBuilder;
-import ee.sk.smartid.HashAlgorithm;
 import ee.sk.smartid.RpChallengeGenerator;
 import ee.sk.smartid.SmartIdClient;
 import ee.sk.smartid.common.devicelink.CallbackUrl;
@@ -47,6 +45,8 @@ import ee.sk.smartid.rest.dao.DeviceLinkAuthenticationSessionRequest;
 import ee.sk.smartid.rest.dao.DeviceLinkSessionResponse;
 import ee.sk.smartid.rest.dao.SemanticsIdentifier;
 import ee.sk.smartid.rest.dao.SessionStatus;
+import ee.sk.smartid.signature.AuthenticationSignatureAlgorithm;
+import ee.sk.smartid.signature.HashAlgorithm;
 import ee.sk.smartid.util.CallbackUrlUtil;
 import jakarta.servlet.http.HttpSession;
 

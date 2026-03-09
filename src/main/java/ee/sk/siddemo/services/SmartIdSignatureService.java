@@ -35,9 +35,9 @@ import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.siddemo.model.SignatureSessionInfo;
 import ee.sk.siddemo.model.SigningResult;
 import ee.sk.smartid.SignatureResponse;
-import ee.sk.smartid.SignatureValueValidator;
-import ee.sk.smartid.SignatureValueValidatorImpl;
-import ee.sk.smartid.SigningSignatureAlgorithm;
+import ee.sk.smartid.signature.SignatureValueValidator;
+import ee.sk.smartid.signature.SignatureValueValidatorImpl;
+import ee.sk.smartid.signature.SigningSignatureAlgorithm;
 import jakarta.servlet.http.HttpSession;
 
 @Service

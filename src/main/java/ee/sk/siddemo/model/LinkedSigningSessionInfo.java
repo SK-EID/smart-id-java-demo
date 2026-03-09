@@ -30,10 +30,10 @@ import org.digidoc4j.DataToSign;
 
 import ee.sk.smartid.CertificateChoiceResponse;
 import ee.sk.smartid.CertificateLevel;
-import ee.sk.smartid.SigningSignatureAlgorithm;
 import ee.sk.smartid.SignatureResponse;
 import ee.sk.smartid.common.devicelink.CallbackUrl;
 import ee.sk.smartid.rest.dao.DeviceLinkSessionResponse;
+import ee.sk.smartid.signature.SigningSignatureAlgorithm;
 
 public class LinkedSigningSessionInfo implements DeviceLinkSessionInfo, SignatureSessionInfo {
 

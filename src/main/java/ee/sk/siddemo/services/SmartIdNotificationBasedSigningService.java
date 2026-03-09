@@ -45,10 +45,7 @@ import ee.sk.smartid.CertificateByDocumentNumberResult;
 import ee.sk.smartid.CertificateChoiceResponse;
 import ee.sk.smartid.CertificateChoiceResponseValidator;
 import ee.sk.smartid.CertificateLevel;
-import ee.sk.smartid.HashAlgorithm;
-import ee.sk.smartid.SignableData;
 import ee.sk.smartid.SignatureResponseValidator;
-import ee.sk.smartid.SigningSignatureAlgorithm;
 import ee.sk.smartid.SmartIdClient;
 import ee.sk.smartid.common.notification.interactions.NotificationInteraction;
 import ee.sk.smartid.exception.useraccount.CertificateLevelMismatchException;
@@ -59,6 +56,9 @@ import ee.sk.smartid.rest.dao.NotificationCertificateChoiceSessionResponse;
 import ee.sk.smartid.rest.dao.NotificationSignatureSessionResponse;
 import ee.sk.smartid.rest.dao.SemanticsIdentifier;
 import ee.sk.smartid.rest.dao.SessionStatus;
+import ee.sk.smartid.signature.HashAlgorithm;
+import ee.sk.smartid.signature.SignableData;
+import ee.sk.smartid.signature.SigningSignatureAlgorithm;
 import jakarta.servlet.http.HttpSession;
 
 @Service
