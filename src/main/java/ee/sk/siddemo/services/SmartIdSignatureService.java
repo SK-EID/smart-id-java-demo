@@ -64,7 +64,7 @@ public class SmartIdSignatureService {
                 signatureResponse.getSignatureValue(),
                 dataToSign.getDataToSign(),
                 signatureResponse.getCertificate(),
-                signatureResponse.getAlgorithmName(),
+                signatureResponse.getSignatureAlgorithm(),
                 signatureResponse.getRsaSsaPssParameters());
 
         boolean valid = true;
