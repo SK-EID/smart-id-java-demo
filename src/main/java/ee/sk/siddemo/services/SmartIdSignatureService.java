@@ -35,6 +35,9 @@ import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.siddemo.model.SignatureSessionInfo;
 import ee.sk.siddemo.model.SigningResult;
 import ee.sk.smartid.SignatureResponse;
+import ee.sk.smartid.signature.Pkcs15SignatureFactory;
+import ee.sk.smartid.signature.RsaSsaPssSignatureFactory;
+import ee.sk.smartid.signature.SignatureFactory;
 import ee.sk.smartid.signature.SignatureValueValidator;
 import ee.sk.smartid.signature.SignatureValueValidatorImpl;
 import ee.sk.smartid.signature.SigningSignatureAlgorithm;
@@ -60,12 +63,14 @@ public class SmartIdSignatureService {
         }
         SignatureValueValidator validator = new SignatureValueValidatorImpl();
         SigningSignatureAlgorithm signatureAlgorithm = signatureResponse.getSignatureAlgorithm();
+        SignatureFactory signatureFactory = signatureResponse.getSignatureAlgorithm().isLegacyRsa()
+                ? new Pkcs15SignatureFactory(signatureResponse.getSignatureAlgorithm())
+                : new RsaSsaPssSignatureFactory(signatureResponse.getRsaSsaPssParameters());
         validator.validate(
                 signatureResponse.getSignatureValue(),
                 dataToSign.getDataToSign(),
                 signatureResponse.getCertificate(),
-                signatureResponse.getSignatureAlgorithm(),
-                signatureResponse.getRsaSsaPssParameters());
+                signatureFactory);
 
         boolean valid = true;
         Date timestamp = Date.from(ZonedDateTime.now().toInstant());
