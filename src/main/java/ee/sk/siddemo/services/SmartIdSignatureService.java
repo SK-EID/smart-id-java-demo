@@ -60,19 +60,12 @@ public class SmartIdSignatureService {
         }
         SignatureValueValidator validator = new SignatureValueValidatorImpl();
         SigningSignatureAlgorithm signatureAlgorithm = signatureResponse.getSignatureAlgorithm();
-        if (signatureAlgorithm != null && signatureAlgorithm.isLegacyRsa()) {
-            validator.validate(
-                    signatureResponse.getSignatureValue(),
-                    dataToSign.getDataToSign(),
-                    signatureResponse.getCertificate(),
-                    signatureAlgorithm.getAlgorithmName());
-        } else {
-            validator.validate(
-                    signatureResponse.getSignatureValue(),
-                    dataToSign.getDataToSign(),
-                    signatureResponse.getCertificate(),
-                    signatureResponse.getRsaSsaPssParameters());
-        }
+        validator.validate(
+                signatureResponse.getSignatureValue(),
+                dataToSign.getDataToSign(),
+                signatureResponse.getCertificate(),
+                signatureResponse.getAlgorithmName(),
+                signatureResponse.getRsaSsaPssParameters());
 
         boolean valid = true;
         Date timestamp = Date.from(ZonedDateTime.now().toInstant());
