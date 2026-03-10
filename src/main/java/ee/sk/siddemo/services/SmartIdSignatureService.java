@@ -35,7 +35,7 @@ import ee.sk.siddemo.exception.SidOperationException;
 import ee.sk.siddemo.model.SignatureSessionInfo;
 import ee.sk.siddemo.model.SigningResult;
 import ee.sk.smartid.SignatureResponse;
-import ee.sk.smartid.signature.Pkcs15SignatureFactory;
+import ee.sk.smartid.signature.RsaSsaPkcs1SignatureFactory;
 import ee.sk.smartid.signature.RsaSsaPssSignatureFactory;
 import ee.sk.smartid.signature.SignatureFactory;
 import ee.sk.smartid.signature.SignatureValueValidator;
@@ -64,7 +64,7 @@ public class SmartIdSignatureService {
         SignatureValueValidator validator = new SignatureValueValidatorImpl();
         SigningSignatureAlgorithm signatureAlgorithm = signatureResponse.getSignatureAlgorithm();
         SignatureFactory signatureFactory = signatureResponse.getSignatureAlgorithm().isLegacyRsa()
-                ? new Pkcs15SignatureFactory(signatureResponse.getSignatureAlgorithm())
+                ? new RsaSsaPkcs1SignatureFactory(signatureResponse.getSignatureAlgorithm())
                 : new RsaSsaPssSignatureFactory(signatureResponse.getRsaSsaPssParameters());
         validator.validate(
                 signatureResponse.getSignatureValue(),
