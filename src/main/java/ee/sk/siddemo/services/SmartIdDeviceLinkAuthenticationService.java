@@ -74,7 +74,7 @@ public class SmartIdDeviceLinkAuthenticationService {
 
     public void startAuthentication(HttpSession session, AnonymousRequest anonymousRequest) {
         String rpChallenge = RpChallengeGenerator.generate().toBase64EncodedValue();
-        var authenticationCertificateLevel = AuthenticationCertificateLevel.ADVANCED;
+        var authenticationCertificateLevel = AuthenticationCertificateLevel.QUALIFIED;
         CallbackUrl callbackUrl = CallbackUrlUtil.createCallbackUrl(callbackUrlBase);
         DeviceLinkAuthenticationSessionRequestBuilder builder = smartIdClient.createDeviceLinkAuthentication()
                 .withRpChallenge(rpChallenge)
