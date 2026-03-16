@@ -83,7 +83,7 @@ public class SmartIdDeviceLinkAuthenticationService {
                 .withHashAlgorithm(HashAlgorithm.SHA3_512)
                 .withInteractions(List.of(DeviceLinkInteraction.displayTextAndPin(displayText)))
                 .withInitialCallbackUrl(callbackUrl.initialCallbackUri().toString())
-                .withShareMdClientIpAddress(true);
+                .withShareMdClientIpAddress(false);
         DeviceLinkSessionResponse response = builder.initAuthenticationSession();
         DeviceLinkAuthenticationSessionRequest request = builder.getAuthenticationSessionRequest();
 
@@ -104,7 +104,7 @@ public class SmartIdDeviceLinkAuthenticationService {
                 .withCertificateLevel(requestedCertificateLevel)
                 .withSignatureAlgorithm(AuthenticationSignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA3_512)
-                .withShareMdClientIpAddress(true)
+                .withShareMdClientIpAddress(false)
                 .withInteractions(interactions);
         DeviceLinkSessionResponse response = builder.initAuthenticationSession();
         DeviceLinkAuthenticationSessionRequest request = builder.getAuthenticationSessionRequest();
@@ -125,7 +125,7 @@ public class SmartIdDeviceLinkAuthenticationService {
                 .withCertificateLevel(requestedCertificateLevel)
                 .withSignatureAlgorithm(AuthenticationSignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA3_512)
-                .withShareMdClientIpAddress(true)
+                .withShareMdClientIpAddress(false)
                 .withInteractions(interactions);
         DeviceLinkSessionResponse response = builder.initAuthenticationSession();
         DeviceLinkAuthenticationSessionRequest request = builder.getAuthenticationSessionRequest();
