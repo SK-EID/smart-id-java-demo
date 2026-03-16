@@ -74,6 +74,7 @@ public class SmartIdDeviceLinkAuthenticationService {
 
     public void startAuthentication(HttpSession session, AnonymousRequest anonymousRequest) {
         String rpChallenge = RpChallengeGenerator.generate().toBase64EncodedValue();
+        // to test NQ workflow change the value in the following line to AuthenticationCertificateLevel.ADVANCED
         var authenticationCertificateLevel = AuthenticationCertificateLevel.QUALIFIED;
         CallbackUrl callbackUrl = CallbackUrlUtil.createCallbackUrl(callbackUrlBase);
         DeviceLinkAuthenticationSessionRequestBuilder builder = smartIdClient.createDeviceLinkAuthentication()
