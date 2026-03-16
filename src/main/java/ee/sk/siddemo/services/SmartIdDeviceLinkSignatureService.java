@@ -71,6 +71,8 @@ public class SmartIdDeviceLinkSignatureService {
 
     private static final Logger logger = LoggerFactory.getLogger(SmartIdDeviceLinkSignatureService.class);
 
+    private static final DigestAlgorithm RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_SIGNABLE_DATA_DEFAULT_HASH_ALGORITHM = DigestAlgorithm.SHA512;
+
     private final SmartIdSessionsStatusService sessionsStatusService;
     private final SmartIdClient smartIdClient;
     private final SignatureResponseValidator signatureResponseValidator;
@@ -220,11 +222,10 @@ public class SmartIdDeviceLinkSignatureService {
             return switch (signatureAlgorithm) {
                 case SHA256_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA256;
                 case SHA384_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA384;
-                case SHA512_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA512;
                 default -> DigestAlgorithm.SHA512;
             };
         }
-        return DigestAlgorithm.SHA512;
+        return RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_SIGNABLE_DATA_DEFAULT_HASH_ALGORITHM;
     }
 
     private void saveValidateResponse(HttpSession session, SessionStatus status) {

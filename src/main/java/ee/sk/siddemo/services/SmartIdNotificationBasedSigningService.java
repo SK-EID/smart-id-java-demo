@@ -64,6 +64,9 @@ import jakarta.servlet.http.HttpSession;
 @Service
 public class SmartIdNotificationBasedSigningService {
 
+    private static final HashAlgorithm RSASSA_PSS_HASH_ALGORITHM_USED_FOR_SIGNING = HashAlgorithm.SHA_256;
+    private static final DigestAlgorithm RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_USED_HASH_ALGORITHM = DigestAlgorithm.SHA256;
+
     private final SmartIdClient smartIdClient;
     private final SmartIdSessionsStatusService sessionStatusService;
     private final SignatureResponseValidator signatureResponseValidator;
@@ -159,7 +162,7 @@ public class SmartIdNotificationBasedSigningService {
         byte[] dataToSignBytes = dataToSign.getDataToSign();
         HashAlgorithm hashAlgorithm = signatureAlgorithm.isLegacyRsa()
                 ? signatureAlgorithm.getHashAlgorithmForLegacy()
-                : HashAlgorithm.SHA_256;
+                : RSASSA_PSS_HASH_ALGORITHM_USED_FOR_SIGNING;
         return new SignableData(dataToSignBytes, hashAlgorithm);
     }
 
@@ -201,10 +204,9 @@ public class SmartIdNotificationBasedSigningService {
             return switch (signatureAlgorithm) {
                 case SHA256_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA256;
                 case SHA384_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA384;
-                case SHA512_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA512;
-                default -> DigestAlgorithm.SHA256;
+                default -> DigestAlgorithm.SHA512;
             };
         }
-        return DigestAlgorithm.SHA256;
+        return RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_USED_HASH_ALGORITHM;
     }
 }

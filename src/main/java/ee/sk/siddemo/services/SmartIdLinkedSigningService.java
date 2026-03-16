@@ -72,6 +72,7 @@ public class SmartIdLinkedSigningService {
     private static final Logger logger = LoggerFactory.getLogger(SmartIdLinkedSigningService.class);
 
     private static final Map<String, String> OID_MAP = Map.of("2.5.4.5", "serialNumber", "2.5.4.42", "givenName", "2.5.4.4", "surname");
+    private static final DigestAlgorithm RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_SIGNABLE_DATA_DEFAULT_HASH_ALGORITHM = DigestAlgorithm.SHA512;
 
     private final SmartIdClient smartIdClient;
     private final SmartIdSessionsStatusService smartIdSessionsStatusService;
@@ -220,11 +221,10 @@ public class SmartIdLinkedSigningService {
             return switch (signatureAlgorithm) {
                 case SHA256_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA256;
                 case SHA384_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA384;
-                case SHA512_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA512;
                 default -> DigestAlgorithm.SHA512;
             };
         }
-        return DigestAlgorithm.SHA512;
+        return RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_SIGNABLE_DATA_DEFAULT_HASH_ALGORITHM;
     }
 
     private DataFile getUploadedDataFile(MultipartFile uploadedFile) {
