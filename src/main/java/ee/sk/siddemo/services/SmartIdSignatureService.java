@@ -61,16 +61,7 @@ public class SmartIdSignatureService {
         if (signatureResponse == null || dataToSign == null) {
             throw new SidOperationException("Required session data is missing");
         }
-        SignatureValueValidator validator = new SignatureValueValidatorImpl();
         SigningSignatureAlgorithm signatureAlgorithm = signatureResponse.getSignatureAlgorithm();
-        SignatureFactory signatureFactory = signatureResponse.getSignatureAlgorithm().isLegacyRsa()
-                ? new RsaSsaPkcs1SignatureFactory(signatureResponse.getSignatureAlgorithm())
-                : new RsaSsaPssSignatureFactory(signatureResponse.getRsaSsaPssParameters());
-        validator.validate(
-                signatureResponse.getSignatureValue(),
-                dataToSign.getDataToSign(),
-                signatureResponse.getCertificate(),
-                signatureFactory);
 
         boolean valid = true;
         Date timestamp = Date.from(ZonedDateTime.now().toInstant());
@@ -105,6 +96,13 @@ public class SmartIdSignatureService {
         } else if (useDigiDoc4JContainer) {
             throw new SidOperationException("Container was not created for this signing session");
         } else if (container != null) {
+            SignatureValueValidator validator = new SignatureValueValidatorImpl();
+            SignatureFactory signatureFactory = new RsaSsaPssSignatureFactory(signatureResponse.getRsaSsaPssParameters());
+            validator.validate(
+                    signatureResponse.getSignatureValue(),
+                    dataToSign.getDataToSign(),
+                    signatureResponse.getCertificate(),
+                    signatureFactory);
             containerFilePath = "N/A – container not saved (RSASSA-PSS not supported by DigiDoc4J finalization)";
         }
 
