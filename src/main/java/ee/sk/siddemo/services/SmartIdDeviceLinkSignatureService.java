@@ -49,6 +49,7 @@ import ee.sk.siddemo.model.UserRequest;
 import ee.sk.smartid.CertificateByDocumentNumberResult;
 import ee.sk.smartid.CertificateLevel;
 import ee.sk.smartid.DeviceLinkSignatureSessionRequestBuilder;
+import ee.sk.smartid.HashAlgorithm;
 import ee.sk.smartid.SignatureResponse;
 import ee.sk.smartid.SignatureResponseValidator;
 import ee.sk.smartid.SmartIdClient;
@@ -71,7 +72,8 @@ public class SmartIdDeviceLinkSignatureService {
 
     private static final Logger logger = LoggerFactory.getLogger(SmartIdDeviceLinkSignatureService.class);
 
-    private static final DigestAlgorithm RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_SIGNABLE_DATA_DEFAULT_HASH_ALGORITHM = DigestAlgorithm.SHA512;
+    private static final HashAlgorithm RSASSA_PSS_HASH_ALGORITHM_USED_FOR_SIGNING = HashAlgorithm.SHA_384;
+    private static final DigestAlgorithm RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_USED_HASH_ALGORITHM = DigestAlgorithm.SHA384;
 
     private final SmartIdSessionsStatusService sessionsStatusService;
     private final SmartIdClient smartIdClient;
@@ -180,7 +182,7 @@ public class SmartIdDeviceLinkSignatureService {
         if (signatureAlgorithm.isLegacyRsa()) {
             return new SignableData(dataToSignBytes, signatureAlgorithm.getHashAlgorithmForLegacy());
         }
-        return new SignableData(dataToSignBytes);
+        return new SignableData(dataToSignBytes, RSASSA_PSS_HASH_ALGORITHM_USED_FOR_SIGNING);
     }
 
     private Container toContainer(MultipartFile file) {
@@ -225,7 +227,7 @@ public class SmartIdDeviceLinkSignatureService {
                 default -> DigestAlgorithm.SHA512;
             };
         }
-        return RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_SIGNABLE_DATA_DEFAULT_HASH_ALGORITHM;
+        return RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_USED_HASH_ALGORITHM;
     }
 
     private void saveValidateResponse(HttpSession session, SessionStatus status) {
