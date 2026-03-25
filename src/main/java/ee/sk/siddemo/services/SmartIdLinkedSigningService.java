@@ -4,7 +4,7 @@ package ee.sk.siddemo.services;
  * #%L
  * Smart-ID sample Java client
  * %%
- * Copyright (C) 2018 - 2025 SK ID Solutions AS
+ * Copyright (C) 2018 - 2026 SK ID Solutions AS
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -49,7 +49,6 @@ import ee.sk.siddemo.model.LinkedSigningSessionInfo;
 import ee.sk.smartid.CertificateChoiceResponse;
 import ee.sk.smartid.CertificateChoiceResponseValidator;
 import ee.sk.smartid.CertificateLevel;
-import ee.sk.smartid.SignableData;
 import ee.sk.smartid.SignatureResponse;
 import ee.sk.smartid.SignatureResponseValidator;
 import ee.sk.smartid.SmartIdClient;
@@ -61,6 +60,8 @@ import ee.sk.smartid.exception.useraction.UserRefusedException;
 import ee.sk.smartid.rest.dao.DeviceLinkSessionResponse;
 import ee.sk.smartid.rest.dao.LinkedSignatureSessionResponse;
 import ee.sk.smartid.rest.dao.SessionStatus;
+import ee.sk.smartid.signature.SignableData;
+import ee.sk.smartid.signature.SigningSignatureAlgorithm;
 import ee.sk.smartid.util.CallbackUrlUtil;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -71,6 +72,7 @@ public class SmartIdLinkedSigningService {
     private static final Logger logger = LoggerFactory.getLogger(SmartIdLinkedSigningService.class);
 
     private static final Map<String, String> OID_MAP = Map.of("2.5.4.5", "serialNumber", "2.5.4.42", "givenName", "2.5.4.4", "surname");
+    private static final DigestAlgorithm RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_SIGNABLE_DATA_DEFAULT_HASH_ALGORITHM = DigestAlgorithm.SHA512;
 
     private final SmartIdClient smartIdClient;
     private final SmartIdSessionsStatusService smartIdSessionsStatusService;
@@ -93,6 +95,7 @@ public class SmartIdLinkedSigningService {
     }
 
     public void startSigning(HttpSession session, @Valid LinkedSigningRequest linkedSigningRequest) {
+        SigningSignatureAlgorithm signatureAlgorithm = fromRequestOrDefault(linkedSigningRequest.getSigningSignatureAlgorithm());
         CertificateLevel certificateLevel = CertificateLevel.QUALIFIED;
         CallbackUrl callbackUrl = CallbackUrlUtil.createCallbackUrl(callbackUrlBase);
         DeviceLinkSessionResponse response = this.smartIdClient.createDeviceLinkCertificateRequest()
@@ -100,7 +103,15 @@ public class SmartIdLinkedSigningService {
                 .withInitialCallbackUrl(callbackUrl.initialCallbackUri().toString())
                 .initCertificateChoice();
 
-        var linkedSigningSessionInfo = new LinkedSigningSessionInfo(response, certificateLevel, getUploadedDataFile(linkedSigningRequest.getFile()), callbackUrl);
+        DataFile uploadedDataFile = getUploadedDataFile(linkedSigningRequest.getFile());
+        Container container = toContainer(uploadedDataFile);
+        var linkedSigningSessionInfo = new LinkedSigningSessionInfo(
+                response,
+                certificateLevel,
+                uploadedDataFile,
+                callbackUrl,
+                signatureAlgorithm);
+        linkedSigningSessionInfo.setContainer(container);
         sessionStore.put(session.getId(), "deviceLinkSessionInfo", linkedSigningSessionInfo);
         smartIdSessionsStatusService.startPolling(session, response.sessionID());
     }
@@ -122,12 +133,14 @@ public class SmartIdLinkedSigningService {
     public void continueSigning(HttpSession session) {
         LinkedSigningSessionInfo sessionInfo = (LinkedSigningSessionInfo) sessionStore.get(session.getId(), "deviceLinkSessionInfo");
         CertificateChoiceResponse certChoiceResponse = sessionInfo.getCertificateChoiceResponse();
-        SignableData signableData = toSignableData(sessionInfo.getUploadedDataFile(), certChoiceResponse.getCertificate(), sessionInfo);
+        SigningSignatureAlgorithm signatureAlgorithm = sessionInfo.getSigningSignatureAlgorithm();
+        SignableData signableData = toSignableData(sessionInfo.getUploadedDataFile(), certChoiceResponse.getCertificate(), sessionInfo, signatureAlgorithm);
         LinkedSignatureSessionResponse linkedSignatureSessionResponse = smartIdClient.createLinkedNotificationSignature()
                 .withDocumentNumber(certChoiceResponse.getDocumentNumber())
                 .withLinkedSessionID(sessionInfo.getCertificateChoiceSessionId())
                 .withCertificateLevel(sessionInfo.getCertificateLevel())
                 .withSignableData(signableData)
+                .withSignatureAlgorithm(signatureAlgorithm)
                 .withInteractions(List.of(DeviceLinkInteraction.displayTextAndPin("Sign it!")))
                 .initSignatureSession();
         smartIdSessionsStatusService.startPolling(session, linkedSignatureSessionResponse.sessionID());
@@ -160,15 +173,25 @@ public class SmartIdLinkedSigningService {
         }
     }
 
-    private SignableData toSignableData(DataFile file, X509Certificate certificate, LinkedSigningSessionInfo sessionInfo) {
-        Container container = toContainer(file);
-        DataToSign dataToSign = toDataToSign(container, certificate);
-        sessionInfo.setContainer(container);
+    private static SignableData toSignableData(DataFile file,
+                                              X509Certificate certificate,
+                                              LinkedSigningSessionInfo sessionInfo,
+                                              SigningSignatureAlgorithm signatureAlgorithm) {
+        Container container = sessionInfo.getContainer();
+        if (container == null) {
+            container = toContainer(file);
+            sessionInfo.setContainer(container);
+        }
+        DataToSign dataToSign = toDataToSign(container, certificate, signatureAlgorithm);
         sessionInfo.setDataToSign(dataToSign);
-        return new SignableData(dataToSign.getDataToSign());
+        byte[] dataToSignBytes = dataToSign.getDataToSign();
+        if (signatureAlgorithm.isLegacyRsa()) {
+            return new SignableData(dataToSignBytes, signatureAlgorithm.getHashAlgorithmForLegacy());
+        }
+        return new SignableData(dataToSignBytes);
     }
 
-    private Container toContainer(DataFile file) {
+    private static Container toContainer(DataFile file) {
         var configuration = new Configuration(Configuration.Mode.TEST);
         return ContainerBuilder.aContainer()
                 .withConfiguration(configuration)
@@ -176,12 +199,32 @@ public class SmartIdLinkedSigningService {
                 .build();
     }
 
-    private static DataToSign toDataToSign(Container container, X509Certificate certificate) {
+    private static DataToSign toDataToSign(Container container,
+                                          X509Certificate certificate,
+                                          SigningSignatureAlgorithm signatureAlgorithm) {
         return SignatureBuilder.aSignature(container)
                 .withSigningCertificate(certificate)
-                .withSignatureDigestAlgorithm(DigestAlgorithm.SHA512)
+                .withSignatureDigestAlgorithm(toDigestAlgorithm(signatureAlgorithm))
                 .withSignatureProfile(SignatureProfile.LT)
                 .buildDataToSign();
+    }
+
+    private static SigningSignatureAlgorithm fromRequestOrDefault(String signingSignatureAlgorithm) {
+        if (signingSignatureAlgorithm == null || signingSignatureAlgorithm.isBlank()) {
+            return SigningSignatureAlgorithm.RSASSA_PSS;
+        }
+        return SigningSignatureAlgorithm.fromString(signingSignatureAlgorithm.trim());
+    }
+
+    private static DigestAlgorithm toDigestAlgorithm(SigningSignatureAlgorithm signatureAlgorithm) {
+        if (signatureAlgorithm.isLegacyRsa()) {
+            return switch (signatureAlgorithm) {
+                case SHA256_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA256;
+                case SHA384_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA384;
+                default -> DigestAlgorithm.SHA512;
+            };
+        }
+        return RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_SIGNABLE_DATA_DEFAULT_HASH_ALGORITHM;
     }
 
     private DataFile getUploadedDataFile(MultipartFile uploadedFile) {

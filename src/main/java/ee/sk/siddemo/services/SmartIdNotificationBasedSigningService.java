@@ -4,7 +4,7 @@ package ee.sk.siddemo.services;
  * #%L
  * Smart-ID sample Java client
  * %%
- * Copyright (C) 2018 - 2025 SK ID Solutions AS
+ * Copyright (C) 2018 - 2026 SK ID Solutions AS
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -46,7 +46,6 @@ import ee.sk.smartid.CertificateChoiceResponse;
 import ee.sk.smartid.CertificateChoiceResponseValidator;
 import ee.sk.smartid.CertificateLevel;
 import ee.sk.smartid.HashAlgorithm;
-import ee.sk.smartid.SignableData;
 import ee.sk.smartid.SignatureResponseValidator;
 import ee.sk.smartid.SmartIdClient;
 import ee.sk.smartid.common.notification.interactions.NotificationInteraction;
@@ -58,10 +57,15 @@ import ee.sk.smartid.rest.dao.NotificationCertificateChoiceSessionResponse;
 import ee.sk.smartid.rest.dao.NotificationSignatureSessionResponse;
 import ee.sk.smartid.rest.dao.SemanticsIdentifier;
 import ee.sk.smartid.rest.dao.SessionStatus;
+import ee.sk.smartid.signature.SignableData;
+import ee.sk.smartid.signature.SigningSignatureAlgorithm;
 import jakarta.servlet.http.HttpSession;
 
 @Service
 public class SmartIdNotificationBasedSigningService {
+
+    private static final HashAlgorithm RSASSA_PSS_HASH_ALGORITHM_USED_FOR_SIGNING = HashAlgorithm.SHA_256;
+    private static final DigestAlgorithm RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_USED_HASH_ALGORITHM = DigestAlgorithm.SHA256;
 
     private final SmartIdClient smartIdClient;
     private final SmartIdSessionsStatusService sessionStatusService;
@@ -81,6 +85,7 @@ public class SmartIdNotificationBasedSigningService {
     }
 
     public String startSigningWithDocumentNumber(HttpSession session, UserDocumentNumberRequest userDocumentNumberRequest) {
+        SigningSignatureAlgorithm signatureAlgorithm = fromRequestOrDefault(userDocumentNumberRequest.getSigningSignatureAlgorithm());
         var signatureCertificateLevel = CertificateLevel.QSCD;
         CertificateByDocumentNumberResult certificateResult = smartIdClient
                 .createCertificateByDocumentNumber()
@@ -91,10 +96,11 @@ public class SmartIdNotificationBasedSigningService {
                 .withSignatureCertificateLevel(signatureCertificateLevel)
                 .withCertificateResult(certificateResult);
 
-        SignableData signableData = toSignableData(userDocumentNumberRequest.getFile(), certificateResult.certificate(), sessionInfoBuilder);
+        SignableData signableData = toSignableData(userDocumentNumberRequest.getFile(), certificateResult.certificate(), sessionInfoBuilder, signatureAlgorithm);
         NotificationSignatureSessionResponse sessionResponse = smartIdClient.createNotificationSignature()
                 .withCertificateLevel(signatureCertificateLevel)
                 .withSignableData(signableData)
+                .withSignatureAlgorithm(signatureAlgorithm)
                 .withDocumentNumber(userDocumentNumberRequest.getDocumentNumber())
                 .withInteractions(List.of(NotificationInteraction.displayTextAndPin("Sign the document!")))
                 .initSignatureSession();
@@ -105,6 +111,7 @@ public class SmartIdNotificationBasedSigningService {
     }
 
     public String startSigningWithPersonCode(HttpSession session, UserRequest userRequest) {
+        SigningSignatureAlgorithm signatureAlgorithm = fromRequestOrDefault(userRequest.getSigningSignatureAlgorithm());
         var signatureCertificateLevel = CertificateLevel.QUALIFIED;
         var sessionInfoBuilder = NotificationSignatureSessionInfo.builder().withSignatureCertificateLevel(signatureCertificateLevel);
         var semanticsIdentifier = new SemanticsIdentifier(SemanticsIdentifier.IdentityType.PNO, userRequest.getCountry(), userRequest.getNationalIdentityNumber());
@@ -115,10 +122,11 @@ public class SmartIdNotificationBasedSigningService {
         SessionStatus certChoiceSessionStatus = sessionStatusService.poll(response.sessionID());
         CertificateChoiceResponse certChoiceResponse = certificateChoiceResponseValidator.validate(certChoiceSessionStatus, signatureCertificateLevel);
         sessionInfoBuilder.withCertChoiceResponse(certChoiceResponse);
-        var signableData = toSignableData(userRequest.getFile(), certChoiceResponse.getCertificate(), sessionInfoBuilder);
+        var signableData = toSignableData(userRequest.getFile(), certChoiceResponse.getCertificate(), sessionInfoBuilder, signatureAlgorithm);
         NotificationSignatureSessionResponse sessionResponse = smartIdClient.createNotificationSignature()
                 .withCertificateLevel(signatureCertificateLevel)
                 .withSignableData(signableData)
+                .withSignatureAlgorithm(signatureAlgorithm)
                 .withSemanticsIdentifier(semanticsIdentifier)
                 .withInteractions(List.of(NotificationInteraction.displayTextAndPin("Sign the document!")))
                 .initSignatureSession();
@@ -145,13 +153,17 @@ public class SmartIdNotificationBasedSigningService {
 
     private SignableData toSignableData(MultipartFile uploadedFile,
                                         X509Certificate certificate,
-                                        NotificationSignatureSessionInfo.Builder sessionInfoBuilder) {
+                                        NotificationSignatureSessionInfo.Builder sessionInfoBuilder,
+                                        SigningSignatureAlgorithm signatureAlgorithm) {
         Container container = toContainer(uploadedFile);
-        DataToSign dataToSign = toDataToSign(container, certificate);
+        DataToSign dataToSign = toDataToSign(container, certificate, signatureAlgorithm);
         sessionInfoBuilder.withDataToSign(dataToSign);
         sessionInfoBuilder.withContainer(container);
-        // hash algorithm has to match SignatureDigestAlgorithm used in dataToSign
-        return new SignableData(dataToSign.getDataToSign(), HashAlgorithm.SHA_256);
+        byte[] dataToSignBytes = dataToSign.getDataToSign();
+        HashAlgorithm hashAlgorithm = signatureAlgorithm.isLegacyRsa()
+                ? signatureAlgorithm.getHashAlgorithmForLegacy()
+                : RSASSA_PSS_HASH_ALGORITHM_USED_FOR_SIGNING;
+        return new SignableData(dataToSignBytes, hashAlgorithm);
     }
 
     private Container toContainer(MultipartFile userDocumentNumberRequest) {
@@ -172,10 +184,29 @@ public class SmartIdNotificationBasedSigningService {
         }
     }
 
-    private static DataToSign toDataToSign(Container container, X509Certificate certificate) {
+    private static DataToSign toDataToSign(Container container, X509Certificate certificate,
+                                          SigningSignatureAlgorithm signatureAlgorithm) {
         return SignatureBuilder.aSignature(container)
                 .withSigningCertificate(certificate)
-                .withSignatureDigestAlgorithm(DigestAlgorithm.SHA256)
+                .withSignatureDigestAlgorithm(toDigestAlgorithm(signatureAlgorithm))
                 .buildDataToSign();
+    }
+
+    private static SigningSignatureAlgorithm fromRequestOrDefault(String signingSignatureAlgorithm) {
+        if (signingSignatureAlgorithm == null || signingSignatureAlgorithm.isBlank()) {
+            return SigningSignatureAlgorithm.RSASSA_PSS;
+        }
+        return SigningSignatureAlgorithm.fromString(signingSignatureAlgorithm.trim());
+    }
+
+    private static DigestAlgorithm toDigestAlgorithm(SigningSignatureAlgorithm signatureAlgorithm) {
+        if (signatureAlgorithm.isLegacyRsa()) {
+            return switch (signatureAlgorithm) {
+                case SHA256_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA256;
+                case SHA384_WITH_RSA_ENCRYPTION -> DigestAlgorithm.SHA384;
+                default -> DigestAlgorithm.SHA512;
+            };
+        }
+        return RSASSA_PSS_DIGEST_ALGORITHM_ACCORDING_TO_USED_HASH_ALGORITHM;
     }
 }

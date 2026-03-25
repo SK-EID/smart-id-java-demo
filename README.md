@@ -65,6 +65,18 @@ then you need to import server's cert into the trust store.
 
 More info how to do this can be found from [smart-id-java-clientdocumentation](https://github.com/SK-EID/smart-id-java-client).
 
+### Error 'Certificate status is revoked' when signing with LT profile (legacy algorithms)
+
+When using the Smart-ID **demo** environment and saving a signed container (DigiDoc4J LT profile), the library requests an OCSP response for your signing certificate. Smart-ID demo certificates are **not** automatically registered in the demo OCSP; the OCSP may therefore return "revoked" (or unknown), which leads to this error.
+
+**Fix:** Register your Smart-ID demo certificate as **Good** in the demo OCSP:
+
+1. Download your signing certificate (e.g. from [Smart-ID demo portal](https://sid.demo.sk.ee/portal/login) or export it from your signing flow).
+2. Open the certificate upload page: [https://demo.sk.ee/upload_cert/](https://demo.sk.ee/upload_cert/).
+3. Upload the certificate (PEM format) and set the status to **Good**.
+
+After that, when DigiDoc4J requests OCSP from the URL in your certificate (AIA), the demo OCSP will return "good" and LT signing will complete. See also [Smart-ID demo page](https://sk-eid.github.io/smart-id-documentation/demo.html) and [SK OCSP Demo environment](https://github.com/SK-EID/ocsp/wiki/SK-OCSP-Demo-environment).
+
 ## Trust Stores information
 
 Demo application has two separate trust stores:

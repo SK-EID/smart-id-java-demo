@@ -4,7 +4,7 @@ package ee.sk.siddemo.services;
  * #%L
  * Smart-ID sample Java client
  * %%
- * Copyright (C) 2018 - 2025 SK ID Solutions AS
+ * Copyright (C) 2018 - 2026 SK ID Solutions AS
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -39,7 +39,6 @@ import ee.sk.smartid.AuthenticationCertificateLevel;
 import ee.sk.smartid.DeviceLinkAuthenticationSessionRequestBuilder;
 import ee.sk.smartid.HashAlgorithm;
 import ee.sk.smartid.RpChallengeGenerator;
-import ee.sk.smartid.SignatureAlgorithm;
 import ee.sk.smartid.SmartIdClient;
 import ee.sk.smartid.common.devicelink.CallbackUrl;
 import ee.sk.smartid.common.devicelink.interactions.DeviceLinkInteraction;
@@ -47,6 +46,7 @@ import ee.sk.smartid.rest.dao.DeviceLinkAuthenticationSessionRequest;
 import ee.sk.smartid.rest.dao.DeviceLinkSessionResponse;
 import ee.sk.smartid.rest.dao.SemanticsIdentifier;
 import ee.sk.smartid.rest.dao.SessionStatus;
+import ee.sk.smartid.signature.AuthenticationSignatureAlgorithm;
 import ee.sk.smartid.util.CallbackUrlUtil;
 import jakarta.servlet.http.HttpSession;
 
@@ -74,16 +74,17 @@ public class SmartIdDeviceLinkAuthenticationService {
 
     public void startAuthentication(HttpSession session, AnonymousRequest anonymousRequest) {
         String rpChallenge = RpChallengeGenerator.generate().toBase64EncodedValue();
-        var authenticationCertificateLevel = AuthenticationCertificateLevel.ADVANCED;
+        // to test NQ workflow change the value in the following line to AuthenticationCertificateLevel.ADVANCED
+        var authenticationCertificateLevel = AuthenticationCertificateLevel.QUALIFIED;
         CallbackUrl callbackUrl = CallbackUrlUtil.createCallbackUrl(callbackUrlBase);
         DeviceLinkAuthenticationSessionRequestBuilder builder = smartIdClient.createDeviceLinkAuthentication()
                 .withRpChallenge(rpChallenge)
                 .withCertificateLevel(authenticationCertificateLevel)
-                .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(AuthenticationSignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA3_512)
                 .withInteractions(List.of(DeviceLinkInteraction.displayTextAndPin(displayText)))
                 .withInitialCallbackUrl(callbackUrl.initialCallbackUri().toString())
-                .withShareMdClientIpAddress(true);
+                .withShareMdClientIpAddress(false);
         DeviceLinkSessionResponse response = builder.initAuthenticationSession();
         DeviceLinkAuthenticationSessionRequest request = builder.getAuthenticationSessionRequest();
 
@@ -102,9 +103,9 @@ public class SmartIdDeviceLinkAuthenticationService {
                 .withRpChallenge(rpChallenge)
                 .withSemanticsIdentifier(semanticsIdentifier)
                 .withCertificateLevel(requestedCertificateLevel)
-                .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(AuthenticationSignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA3_512)
-                .withShareMdClientIpAddress(true)
+                .withShareMdClientIpAddress(false)
                 .withInteractions(interactions);
         DeviceLinkSessionResponse response = builder.initAuthenticationSession();
         DeviceLinkAuthenticationSessionRequest request = builder.getAuthenticationSessionRequest();
@@ -123,9 +124,9 @@ public class SmartIdDeviceLinkAuthenticationService {
                 .withRpChallenge(rpChallenge)
                 .withDocumentNumber(userDocumentNumberRequest.getDocumentNumber())
                 .withCertificateLevel(requestedCertificateLevel)
-                .withSignatureAlgorithm(SignatureAlgorithm.RSASSA_PSS)
+                .withSignatureAlgorithm(AuthenticationSignatureAlgorithm.RSASSA_PSS)
                 .withHashAlgorithm(HashAlgorithm.SHA3_512)
-                .withShareMdClientIpAddress(true)
+                .withShareMdClientIpAddress(false)
                 .withInteractions(interactions);
         DeviceLinkSessionResponse response = builder.initAuthenticationSession();
         DeviceLinkAuthenticationSessionRequest request = builder.getAuthenticationSessionRequest();

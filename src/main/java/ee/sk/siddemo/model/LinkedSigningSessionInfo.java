@@ -4,7 +4,7 @@ package ee.sk.siddemo.model;
  * #%L
  * Smart-ID sample Java client
  * %%
- * Copyright (C) 2018 - 2025 SK ID Solutions AS
+ * Copyright (C) 2018 - 2026 SK ID Solutions AS
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -33,6 +33,7 @@ import ee.sk.smartid.CertificateLevel;
 import ee.sk.smartid.SignatureResponse;
 import ee.sk.smartid.common.devicelink.CallbackUrl;
 import ee.sk.smartid.rest.dao.DeviceLinkSessionResponse;
+import ee.sk.smartid.signature.SigningSignatureAlgorithm;
 
 public class LinkedSigningSessionInfo implements DeviceLinkSessionInfo, SignatureSessionInfo {
 
@@ -40,6 +41,7 @@ public class LinkedSigningSessionInfo implements DeviceLinkSessionInfo, Signatur
     private final CertificateLevel certificateLevel;
     private final DataFile uploadedDataFile;
     private final CallbackUrl callbackUrl;
+    private final SigningSignatureAlgorithm signingSignatureAlgorithm;
 
     private CertificateChoiceResponse certificateChoiceResponse;
     private Container container;
@@ -50,11 +52,13 @@ public class LinkedSigningSessionInfo implements DeviceLinkSessionInfo, Signatur
     public LinkedSigningSessionInfo(DeviceLinkSessionResponse certificateSessionResponse,
                                     CertificateLevel certificateLevel,
                                     DataFile uploadedDataFile,
-                                    CallbackUrl callbackUrl) {
+                                    CallbackUrl callbackUrl,
+                                    SigningSignatureAlgorithm signingSignatureAlgorithm) {
         this.certificateSessionResponse = certificateSessionResponse;
         this.certificateLevel = certificateLevel;
         this.uploadedDataFile = uploadedDataFile;
         this.callbackUrl = callbackUrl;
+        this.signingSignatureAlgorithm = signingSignatureAlgorithm;
     }
 
     @Override
@@ -124,6 +128,10 @@ public class LinkedSigningSessionInfo implements DeviceLinkSessionInfo, Signatur
         return uploadedDataFile;
     }
 
+    public SigningSignatureAlgorithm getSigningSignatureAlgorithm() {
+        return signingSignatureAlgorithm;
+    }
+
     public void setCertificateChoiceResponse(CertificateChoiceResponse certificateChoiceResponse) {
         this.certificateChoiceResponse = certificateChoiceResponse;
     }
@@ -147,6 +155,11 @@ public class LinkedSigningSessionInfo implements DeviceLinkSessionInfo, Signatur
     @Override
     public DataToSign getDataToSign() {
         return dataToSign;
+    }
+
+    @Override
+    public Container getContainer() {
+        return container;
     }
 
     @Override

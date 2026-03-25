@@ -4,7 +4,7 @@ package ee.sk.siddemo.model;
  * #%L
  * Smart-ID sample Java client
  * %%
- * Copyright (C) 2018 - 2019 SK ID Solutions AS
+ * Copyright (C) 2018 - 2026 SK ID Solutions AS
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -41,6 +41,8 @@ public class UserRequest {
 
     private UserActionMock userActionMock = UserActionMock.NONE;
 
+    private String signingSignatureAlgorithm = "rsassa-pss";
+
     private MultipartFile file;
 
     public String getNationalIdentityNumber() {
@@ -73,5 +75,13 @@ public class UserRequest {
 
     public void setUserActionMock(UserActionMock userActionMock) {
         this.userActionMock = userActionMock;
+    }
+
+    public String getSigningSignatureAlgorithm() {
+        return signingSignatureAlgorithm;
+    }
+
+    public void setSigningSignatureAlgorithm(String signingSignatureAlgorithm) {
+        this.signingSignatureAlgorithm = signingSignatureAlgorithm;
     }
 }

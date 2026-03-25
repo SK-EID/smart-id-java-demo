@@ -40,7 +40,7 @@
         <dependency>
             <groupId>org.digidoc4j</groupId>
             <artifactId>digidoc4j</artifactId>
-            <version>6.0.1</version>
+            <version>6.1.0</version>
         </dependency>
 
         <dependency>
@@ -62,13 +62,24 @@
         <dependency>
             <groupId>ee.sk.smartid</groupId>
             <artifactId>smart-id-java-client</artifactId>
-            <version>3.1-SNAPSHOT</version>
+            <version>3.2</version>
         </dependency>
 
         <dependency>
             <groupId>net.jodah</groupId>
             <artifactId>expiringmap</artifactId>
             <version>0.5.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+            <version>5.4.1</version>
         </dependency>
 
         <dependency>

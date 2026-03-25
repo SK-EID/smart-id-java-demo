@@ -329,6 +329,7 @@
                                           th:object="${userDocumentNumberRequest}"
                                           class="form-action"
                                           enctype="multipart/form-data">
+                                        <div th:replace="~{fragments/signing-algorithm-selection::signingAlgorithmSelection}"></div>
                                         <div class="form-group">
                                             <label for="device-link-sign-document-number"> Document number</label>
                                             <input th:field="*{documentNumber}"
@@ -358,7 +359,7 @@
                                           th:object="${userRequest}"
                                           class="form-action"
                                           enctype="multipart/form-data">
-
+                                        <div th:replace="~{fragments/signing-algorithm-selection::signingAlgorithmSelection}"></div>
                                         <div th:replace="~{fragments/country-selection::countrySelection}"></div>
 
                                         <div class="form-group">
@@ -401,7 +402,7 @@
                                           th:object="${userRequest}"
                                           class="form-action"
                                           enctype="multipart/form-data">
-
+                                        <div th:replace="~{fragments/signing-algorithm-selection::signingAlgorithmSelection}"></div>
                                         <div th:replace="~{fragments/country-selection::countrySelection}"></div>
 
                                         <div class="form-group">
@@ -433,6 +434,7 @@
                                           th:object="${userDocumentNumberRequest}"
                                           class="form-action"
                                           enctype="multipart/form-data">
+                                        <div th:replace="~{fragments/signing-algorithm-selection::signingAlgorithmSelection}"></div>
                                         <div class="form-group">
                                             <label for="notification-sign-document-number"> Document number</label>
                                             <input th:field="*{documentNumber}"
@@ -479,6 +481,7 @@
                                       th:object="${linkedSigningRequest}"
                                       class="form-action"
                                       enctype="multipart/form-data">
+                                    <div th:replace="~{fragments/signing-algorithm-selection::signingAlgorithmSelection}"></div>
                                     <div class="form-group">
                                         <label for="document-to-be-signed">Document to sign (max 10 MB)</label>
                                         <br>

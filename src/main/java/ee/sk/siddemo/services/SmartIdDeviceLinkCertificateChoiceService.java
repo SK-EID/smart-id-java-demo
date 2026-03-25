@@ -75,7 +75,7 @@ public class SmartIdDeviceLinkCertificateChoiceService {
         CallbackUrl callbackUrl = CallbackUrlUtil.createCallbackUrl(callbackUrlBase);
         DeviceLinkSessionResponse response = this.smartIdClient.createDeviceLinkCertificateRequest()
                 .withCertificateLevel(requesteCertificateLevel)
-                .withShareMdClientIpAddress(true)
+                .withShareMdClientIpAddress(false)
                 .withInitialCallbackUrl(callbackUrl.initialCallbackUri().toString())
                 .initCertificateChoice();
 
