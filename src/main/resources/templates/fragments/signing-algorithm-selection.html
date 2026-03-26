@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div th:fragment="signingAlgorithmSelection">
+    <div class="form-group">
+        <label for="signing-signature-algorithm">Signing algorithm</label>
+        <select th:field="*{signingSignatureAlgorithm}" id="signing-signature-algorithm" class="form-control" name="signingSignatureAlgorithm">
+            <option value="rsassa-pss">RSASSA-PSS</option>
+            <option value="sha256WithRSAEncryption">SHA256 with RSA encryption</option>
+            <option value="sha384WithRSAEncryption">SHA384 with RSA encryption</option>
+            <option value="sha512WithRSAEncryption">SHA512 with RSA encryption</option>
+        </select>
+    </div>
+</div>
+</body>
+</html>

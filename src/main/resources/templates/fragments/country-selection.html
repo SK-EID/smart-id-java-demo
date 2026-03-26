@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div th:fragment="countrySelection">
+    <div class="form-group">
+        <label th:for="*{country}">Select country</label>
+        <select th:field="*{country}" class="form-control" name="country">
+            <option th:value="'EE'" value="EE">Estonia</option>
+            <option th:value="'LV'" value="LV">Latvia</option>
+            <option th:value="'LT'" th:text="Lithuania"></option>
+            <option th:value="'BE'" th:text="Belgium"></option>
+        </select>
+        <div th:if="${#fields.hasErrors('country')}" th:errors="*{country}" style="color:red">
+            country Error
+        </div>
+    </div>
+</div>
+</body>
+</html>

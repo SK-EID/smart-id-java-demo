@@ -4,7 +4,7 @@ package ee.sk.siddemo.controller;
  * #%L
  * Smart-ID sample Java client
  * %%
- * Copyright (C) 2018 - 2019 SK ID Solutions AS
+ * Copyright (C) 2018 - 2025 SK ID Solutions AS
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -22,139 +22,42 @@ package ee.sk.siddemo.controller;
  * #L%
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.ModelMap;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
 
-import ee.sk.siddemo.exception.FileUploadException;
-import ee.sk.siddemo.exception.SidOperationException;
-import ee.sk.siddemo.model.AuthenticationSessionInfo;
-import ee.sk.siddemo.model.SigningResult;
-import ee.sk.siddemo.model.SigningSessionInfo;
+import ee.sk.siddemo.model.AnonymousRequest;
+import ee.sk.siddemo.model.LinkedSigningRequest;
+import ee.sk.siddemo.model.UserDocumentNumberRequest;
 import ee.sk.siddemo.model.UserRequest;
-import ee.sk.siddemo.model.UserSidSession;
-import ee.sk.siddemo.services.SmartIdAuthenticationService;
-import ee.sk.siddemo.services.SmartIdSignatureService;
-import ee.sk.smartid.AuthenticationIdentity;
-import jakarta.validation.Valid;
 
-@RestController
+@Controller
 public class SmartIdController {
 
-    private static final Logger logger = LoggerFactory.getLogger(SmartIdController.class);
-
-    private final SmartIdSignatureService signatureService;
-    private final SmartIdAuthenticationService authenticationService;
-    private final UserSidSession userSidSession;
-
-    @Autowired
-    public SmartIdController(SmartIdSignatureService signatureService, SmartIdAuthenticationService authenticationService, UserSidSession userSidSession) {
-        this.signatureService = signatureService;
-        this.authenticationService = authenticationService;
-        this.userSidSession = userSidSession; // session scope, autowired
+    @ModelAttribute("anonymousRequest")
+    public AnonymousRequest anonymousRequest() {
+        return new AnonymousRequest();
     }
 
-    @GetMapping(value = "/")
-    public ModelAndView userRequestForm() {
-        return new ModelAndView("index", "userRequest", new UserRequest());
+    @ModelAttribute("userRequest")
+    public UserRequest userRequest() {
+        return new UserRequest();
     }
 
-    @PostMapping(value = "/signatureRequest")
-    public ModelAndView sendSignatureRequest(@ModelAttribute("userRequest") UserRequest userRequest,
-                                             BindingResult bindingResult, ModelMap model) {
-
-        if (userRequest.getFile() == null || userRequest.getFile().getOriginalFilename() == null || userRequest.getFile().isEmpty()) {
-            bindingResult.rejectValue("file", "error.file", "Please select a file to upload");
-        }
-
-        if (bindingResult.hasErrors()) {
-            return new ModelAndView("index", "userRequest", userRequest);
-        }
-
-        SigningSessionInfo signingSessionInfo = signatureService.sendSignatureRequest(userRequest);
-
-        userSidSession.setSigningSessionInfo(signingSessionInfo);
-
-        model.addAttribute("signingSessionInfo", signingSessionInfo);
-
-        return new ModelAndView("/signature", model);
+    @ModelAttribute("userDocumentNumberRequest")
+    public UserDocumentNumberRequest userDocumentNumberRequest() {
+        return new UserDocumentNumberRequest();
     }
 
-    @PostMapping(value = "/sign")
-    public ModelAndView sign(ModelMap model) {
-
-        SigningResult signingResult = signatureService.sign(userSidSession.getSigningSessionInfo());
-
-        userSidSession.clearSigningSession();
-
-        model.addAttribute("signingResult", signingResult);
-
-        return new ModelAndView("signingResult", model);
+    @ModelAttribute("linkedSigningRequest")
+    public LinkedSigningRequest linkedSigningRequest() {
+        return new LinkedSigningRequest();
     }
 
-    @PostMapping(value = "/authenticationRequest")
-    public ModelAndView sendAuthenticationRequest(@ModelAttribute("userRequest") @Valid UserRequest userRequest,
-                                                  BindingResult bindingResult, ModelMap model) {
-
-        if (bindingResult.hasErrors()) {
-            System.out.println("Input validation error");
-            return new ModelAndView("index", "userRequest", userRequest);
-        }
-
-        AuthenticationSessionInfo authenticationSessionInfo = authenticationService.startAuthentication(userRequest);
-        userSidSession.setAuthenticationSessionInfo(authenticationSessionInfo);
-
-        model.addAttribute("verificationCode", authenticationSessionInfo.getVerificationCode());
-
-        return new ModelAndView("/authentication", model);
+    @GetMapping(value = "/rp-api-v3")
+    public String viewRpApiV3Tab(Model model) {
+        model.addAttribute("activeTab", "rp-api-v3");
+        return "main";
     }
-
-    @PostMapping(value = "/authenticate")
-    public ModelAndView authenticate(ModelMap model) {
-        AuthenticationIdentity person = authenticationService.authenticate(userSidSession.getAuthenticationSessionInfo());
-        model.addAttribute("person", person);
-
-        userSidSession.clearAuthenticationSessionInfo();
-
-        return new ModelAndView("authenticationResult", model);
-    }
-
-    @ExceptionHandler(FileUploadException.class)
-    public ModelAndView handleFileUploadException(FileUploadException exception) {
-        var model = new ModelMap();
-
-        model.addAttribute("errorMessage", "File upload error");
-
-        return new ModelAndView("sidOperationError", model);
-    }
-
-    @ExceptionHandler(SidOperationException.class)
-    public ModelAndView handleSidOperationException(SidOperationException exception) {
-        var model = new ModelMap();
-
-        model.addAttribute("errorMessage", exception.getMessage());
-
-        return new ModelAndView("sidOperationError", model);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ModelAndView handleSmartIdException(Exception exception) {
-        logger.warn("Generic error caught", exception);
-
-        var model = new ModelMap();
-
-        model.addAttribute("errorMessage", exception.getMessage());
-
-        return new ModelAndView("error", model);
-    }
-
-
 }

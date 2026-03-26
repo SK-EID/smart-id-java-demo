@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="et" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Smart-ID</title>
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+    <link href="../../static/css/style.css.css" rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+
+<body>
+<div th:insert="~{fragments/header :: header}"></div>
+<main>
+    <div class="d-flex align-items-center">
+        <div class="spinner-border ml-auto m-3" role="status" aria-hidden="true"></div>
+        <strong>Querying certificate ...</strong>
+    </div>
+</main>
+<script th:src="@{/js/bootstrap.js}"></script>
+<script type="text/javascript">
+    function loadContent() {
+        fetch('/notification-based/check-certificate-choice-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.errorMessage !== undefined) {
+                    window.location.href = '/session-error?errorMessage=' + data.errorMessage;
+                } else if (data.sessionStatus === 'COMPLETED') {
+                    window.location.href = '/notification-based/certificate-choice-result';
+                } else {
+                    setTimeout(loadContent, 1000);
+                }
+            })
+            .catch(error => console.log('Error:', error));
+    }
+
+    window.onload = loadContent;
+</script>
+</body>
+
+</html>

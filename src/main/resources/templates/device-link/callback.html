@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="et" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Smart-ID</title>
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+    <link href="../../static/css/style.css.css" rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+
+<body>
+<div th:insert="~{fragments/header :: header}"></div>
+
+<main class="flex-column">
+    <div class="d-flex align-items-center">
+        <div id="callback-result">
+            <div class="spinner-border ml-auto m-3" role="status" aria-hidden="true"></div>
+            <strong>Checking callback ...</strong>
+        </div>
+    </div>
+    <div class="alert-info text-center">
+
+    </div>
+</main>
+
+<script th:src="@{/js/bootstrap.js}"></script>
+<script type="text/javascript">
+    (function () {
+        const queryParams = Object.fromEntries(new URLSearchParams(location.search).entries());
+        fetch('/callback/validate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'same-origin',
+            body: JSON.stringify({query: queryParams, ts: new Date().toISOString()})
+        })
+            .then(response => {
+                console.log(response);
+                if (response.ok) {
+                    const resultArea = document.getElementById('callback-result');
+                    resultArea.innerHTML = '<strong>Success! You can close this tab.</strong>';
+                } else {
+                    const resultArea = document.getElementById('callback-result');
+                    resultArea.innerHTML = '<strong>Callback validation failed!</strong>';
+                }
+            })
+            .catch(() => document.body.textContent = 'Something went wrong.')
+            .finally(
+                () => {
+                    const infoArea = document.querySelector('.alert-info');
+                    infoArea.textContent = location.href;
+                }
+            );
+    })();
+</script>
+</body>
+
+</html>

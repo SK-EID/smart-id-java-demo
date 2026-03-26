@@ -16,10 +16,6 @@
         <appender-ref ref="Console" />
     </root>
 
-    <logger name="ee.sk" level="debug">
-        <appender-ref ref="Console" />
-    </logger>
-
     <!-- set this to TRACE if you want to log actual payloads and headers sent out -->
     <logger name="ee.sk.smartid.rest" level="trace" additivity="false">
         <appender-ref ref="Console" />

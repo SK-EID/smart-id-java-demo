@@ -1,21 +1,28 @@
 spring.servlet.multipart:
   max-file-size: 10MB
   max-request-size: 10MB
-server.port: 8081
+server.port: 8082
+
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: lax
+        secure: true
+        http-only: true
+  forward-headers-strategy: framework
 
 sid:
   client:
-    relyingPartyUuid: 00000000-0000-0000-0000-000000000000
-    relyingPartyName: DEMO
-    applicationProviderHost: https://sid.demo.sk.ee/smart-id-rp/v2/
+    relyingPartyUuid: ${SID_RELYING_PARTY_UUID}
+    relyingPartyName: ${SID_RELYING_PARTY_NAME}
+#    relyingPartyUuid: 00000000-0000-4000-8000-000000000000
+#    relyingPartyName: DEMO
+    applicationProviderHost: https://sid.demo.sk.ee/smart-id-rp/v3/
+    polling-timeout-in-seconds: 5
+    open-socket-timeout-in-seconds: 1
   auth:
     displayText: Log in with Smart-ID demo?
-    displayTextFormat: GSM7
-    displayTextLanguage: ENG
-  sign:
-    displayText: Подписать?
-    displayTextFormat: UCS2
-    displayTextLanguage: RUS
   truststore:
     trusted-server-ssl-certs:
       filename: /sid.trusted_server_certs.p12
@@ -23,6 +30,10 @@ sid:
     trusted-root-certs:
       filename: /sid.trusted_root_certs.p12
       password: changeit
+    trust-anchor-certs:
+      filename: /sid_trust_anchor_certificates.jks
+      password: changeit
+  callbackUrl: https://08d8686aa972.ngrok-free.app/callback # ngrok tunnel can be used for same-device testing
 
 app:
   signed-files-directory: target/signed-files
